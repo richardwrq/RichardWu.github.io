@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>RichardWu&#39;s Blog</title>
-    <link>https://richardwrq.github.io/</link>
+    <link>https://richardwu.github.io/</link>
     <description>Recent content on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
     <lastBuildDate>Fri, 27 Apr 2018 12:35:27 +0800</lastBuildDate>
     
-	<atom:link href="https://richardwrq.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://richardwu.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>使用Kotlin打造Android路由框架-Krouter</title>
-      <link>https://richardwrq.github.io/post/krouter/</link>
+      <link>https://richardwu.github.io/post/krouter/</link>
       <pubDate>Fri, 27 Apr 2018 12:35:27 +0800</pubDate>
       
-      <guid>https://richardwrq.github.io/post/krouter/</guid>
+      <guid>https://richardwu.github.io/post/krouter/</guid>
       <description>KRouter(https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。 源码不复杂，在关键地方也有注释说明，建议打算或正在使用kapt+kotlinpoet遇到坑的同学可以fork一下项目，或许能找到你想要的答案，只要将整个流程了解清楚了，相信你自己也能撸一个轮子出来，目前许多开源框架dagger、butter knife、greendao等实现原理都是一致的。 ####从startActivity开始说起 在组件化开发的实践过程中，当我完成一个模块的开发后（比如说这个模块中有一个Activity或者Service供调用者调用），其他模块的开发者要启动我这个模块中的Activity的代码我们再熟悉不过了：
 1 2 3 4  val intent = Intent(this, MainActivity::class.java) intent.putExtra(&amp;#34;param1&amp;#34;, &amp;#34;1&amp;#34;) intent.putExtra(&amp;#34;param2&amp;#34;, &amp;#34;2&amp;#34;) startActivity(intent)   当然，其他模块的开发人员需要知道我们这个Activity的类名以及传入的参数对应的key值（上面的param1和param2），这时候我就想，在每一个需要启动这个页面的地方都存在着类似的样板代码，而且被启动的Activity在取出参数对属性进行赋值时的代码也比较繁琐，于是在网上查找相关资料了解到目前主流的路由框架（ARouter、Router等）都支持这些功能，秉着尽量不重复造轮子的观念我fork了ARouter项目，但是阅读源码后发现其暂时不支持Service的启动，而我负责的项目里面全是运行在后台的Service。。。紧接着也大概了解了一下其他一些框架，都存在一些不太满意的地方，考虑再三，干脆自己撸一个轮子出来好了。
 首先来看一段最简单的发起路由请求的代码(Java调用)：
@@ -26,19 +26,19 @@
     
     <item>
       <title></title>
-      <link>https://richardwrq.github.io/404/</link>
+      <link>https://richardwu.github.io/404/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://richardwrq.github.io/404/</guid>
+      <guid>https://richardwu.github.io/404/</guid>
       <description> Error 404: Page Not Found It seems that the page that you&amp;rsquo;re trying to access doesn&amp;rsquo;t exist. 😟 If you&amp;rsquo;re sure that it exists, chances are it might have been moved to a new link! You may search for it on the home page. </description>
     </item>
     
     <item>
       <title></title>
-      <link>https://richardwrq.github.io/about/</link>
+      <link>https://richardwu.github.io/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>https://richardwrq.github.io/about/</guid>
+      <guid>https://richardwu.github.io/about/</guid>
       <description>一个程序员</description>
     </item>
     

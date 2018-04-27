@@ -2,39 +2,39 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on RichardWu&#39;s Blog</title>
-    <link>https://richardwrq.github.io/tags/</link>
+    <link>https://richardwu.github.io/tags/</link>
     <description>Recent content in Tags on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
     <lastBuildDate>Fri, 27 Apr 2018 12:35:27 +0800</lastBuildDate>
     
-	<atom:link href="https://richardwrq.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://richardwu.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Android</title>
-      <link>https://richardwrq.github.io/tags/android/</link>
+      <link>https://richardwu.github.io/tags/android/</link>
       <pubDate>Fri, 27 Apr 2018 12:35:27 +0800</pubDate>
       
-      <guid>https://richardwrq.github.io/tags/android/</guid>
+      <guid>https://richardwu.github.io/tags/android/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Kotlin</title>
-      <link>https://richardwrq.github.io/tags/kotlin/</link>
+      <link>https://richardwu.github.io/tags/kotlin/</link>
       <pubDate>Fri, 27 Apr 2018 12:35:27 +0800</pubDate>
       
-      <guid>https://richardwrq.github.io/tags/kotlin/</guid>
+      <guid>https://richardwu.github.io/tags/kotlin/</guid>
       <description></description>
     </item>
     
     <item>
       <title>路由框架</title>
-      <link>https://richardwrq.github.io/tags/%E8%B7%AF%E7%94%B1%E6%A1%86%E6%9E%B6/</link>
+      <link>https://richardwu.github.io/tags/%E8%B7%AF%E7%94%B1%E6%A1%86%E6%9E%B6/</link>
       <pubDate>Fri, 27 Apr 2018 12:35:27 +0800</pubDate>
       
-      <guid>https://richardwrq.github.io/tags/%E8%B7%AF%E7%94%B1%E6%A1%86%E6%9E%B6/</guid>
+      <guid>https://richardwu.github.io/tags/%E8%B7%AF%E7%94%B1%E6%A1%86%E6%9E%B6/</guid>
       <description></description>
     </item>
     
