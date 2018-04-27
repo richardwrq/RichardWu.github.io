@@ -12,9 +12,7 @@ body, body.pushable {
 }
 </style>
 <title>
-
- | android
-
+注解处理器Annotation Processor中判断Java或Kotlin类
 </title>
 	<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +21,8 @@ body, body.pushable {
 
 	
 	<meta name="author" content="Richard Wu" />
-	<meta name="description" content="..." />
+	<meta name="description" content="在Android Studio中，项目编译build之后kapt会在项目的build/tmp/kapt3/stubs目录下会生成kotlin编写的类的Java“存根类”，在这些类的顶部我们可以看到有这样一个注解@kotlin.Metadata(...) @Metadata是 Kotlin 里比较特殊的一个注解。它记录了 Kotlin 代码元素的一些信息，比如 class 的可见性，function 的返回值，参数类型，property 的 lateinit，nullable 的属性等等。这些 Metadata 的信息由 kotlinc 生成，最终会以注解的形式存于 .class 文件。 所以要在注解处理器判断一个类是kotlin语言或者Java语言编写的我们可以通过判断该类是否有@Metadata注解来区分：
+1 2 3 4 5 6 7  /** * if true mean this class is java class */ private fun isJavaFile(element: TypeElement): Boolean { val tmMetadata = mElements.getTypeElement(&amp;#34;kotlin.Metadata&amp;#34;).asType() return element.annotationMirrors.find { it.annotationType == tmMetadata } == null }  " />
 
 
 
@@ -33,7 +32,7 @@ body, body.pushable {
 <link rel="shortcut icon" href="https://richardwrq.github.io/img/defaultFav.ico">
 
 
-<link rel="canonical" href="https://richardwrq.github.io/tags/android/" />
+<link rel="canonical" href="https://richardwrq.github.io/post/judgejavaorkt/" />
 <link rel="alternative" href="/index.xml" title="RichardWu&#39;s Blog" type="application/atom+xml" />
 
 	<link rel="stylesheet" type="text/css" href="/css/semantic.min.css">
@@ -201,25 +200,19 @@ var bodyBgSwitchIndex = 0;
 
 	
 	
-	<div class="item">
-		
-		<i class="disabled inverted big chevron circle left icon" title="前一页"></i>
-  	
-  </div>
-	<div class="item">
-			
-		<i class="disabled inverted big chevron circle right icon" title="后一页"></i>
-		
+	
+	<div class="ui container tablet computer only grid">
+		<div class="item" onClick="$('.ui.sidebar').sidebar('setting', 'transition', 'overlay').sidebar('toggle');">
+			<i class="inverted big link sidebar icon" title="Show Sidebar"></i>
+		</div>
 	</div>
-	
-	
 	
 </nav>
 
  
 <div class="ui centered grid">
-	<div class="sixteen wide mobile fifteen wide tablet four wide computer column">
-		<div class="ui inverted accordion">
+	<div class="sixteen wide mobile only column">	
+			<div class="ui inverted accordion">
 	<div id="header" class="ui inverted segment column box">
 		<header id="author" class="ui top attached center aligned inverted segment">
 			<div class="ui small circular image">
@@ -231,14 +224,14 @@ var bodyBgSwitchIndex = 0;
 </h3>
 
 		</header>
-		<div class="active title header-title">
+		<div class=" title header-title">
 			
 			<div id="tag-category-pop" class="ui red right corner label">		
-				<i class="hand point icon up"title="点击弹出标签和分类"></i>		
+				<i class="hand point icon down"title="点击弹出标签和分类"></i>		
 			</div>
 			
 		</div>
-		<div id="tag-category" class="active content">
+		<div id="tag-category" class=" content">
 			
 			
 			<section class="ui attached center aligned inverted segment dream-tags none flexbox">
@@ -290,33 +283,106 @@ var bodyBgSwitchIndex = 0;
 	</div>
 </div>
 	</div>
-	<div class="sixteen wide mobile fifteen wide tablet eleven wide computer column post-list">
-		<div class="ui two stackable cards">
+	<div class="sixteen wide mobile fifteen wide tablet twelve wide computer column post-list">
+		<section class="ui secondary top attached black segment post-head">
+			<h1 class="post-title">
+				注解处理器Annotation Processor中判断Java或Kotlin类
+			</h1>
+			<div class="sub header">
+					<div><span><i class="calendar outline icon"></i>Apr 27, 2018</span></div>
+					<div><span class="disqusComment"><i class="comment outline icon"></i><a href="https://richardwrq.github.io/post/judgejavaorkt/#disqus_thread" class="disqus-comment-count" data-disqus-identifier="4846d5bb38cd3b99317d76c82867a6b8"></a></span></div>
+					<div><span><i class="clock outline icon"></i>1 min read</span></div>
+					<div><span><i class="angle double up icon"></i>更新于 Apr 27, 2018</span></div>
+			</div>
+			<hr>
 			
-	
-	
-		<article class="blog-card none flexbox" style="background-image: url(https://richardwrq.github.ioimg/default4.jpg)">
-<img class="image" src="https://richardwrq.github.ioimg/default5.jpg"></img>
-<div class="title-content twemoji">
-	<h3><a class="title" href=https://richardwrq.github.io/post/krouter/>使用Kotlin打造Android路由框架-Krouter</a></h3>
-	<div class="intro twemoji"><br><br></div>
+			
+			
+			<article class="post-content twemoji">
+				<p>在Android Studio中，项目编译build之后kapt会在项目的<code>build/tmp/kapt3/stubs</code>目录下会生成kotlin编写的类的Java“存根类”，在这些类的顶部我们可以看到有这样一个注解<code>@kotlin.Metadata(...)</code>
+ <code>@Metadata</code>是 Kotlin 里比较特殊的一个注解。它记录了 Kotlin 代码元素的一些信息，比如 class 的可见性，function 的返回值，参数类型，property 的 lateinit，nullable 的属性等等。这些 Metadata 的信息由 kotlinc 生成，最终会以注解的形式存于 .class 文件。
+所以要在注解处理器判断一个类是kotlin语言或者Java语言编写的我们可以通过判断该类是否有<code>@Metadata</code>注解来区分：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7c7c79">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-kotlin" data-lang="kotlin">    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * if true mean this class is java class
+</span><span style="color:#75715e">     */</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">isJavaFile</span>(element: TypeElement): Boolean {
+        <span style="color:#66d9ef">val</span> tmMetadata = mElements.getTypeElement(<span style="color:#e6db74">&#34;kotlin.Metadata&#34;</span>).asType()
+        <span style="color:#66d9ef">return</span> element.annotationMirrors.find { it.annotationType == tmMetadata } == <span style="color:#66d9ef">null</span>
+    }</code></pre></td></tr></table>
 </div>
-<div class="utility-info">
-	<ul class="utility-list">
-		
-		<div><i class="comment icon"></i><span class="disqus-comment-count" data-disqus-identifier="b9fb5ccc24f1f52bd040d76e5723b272"></span></div>
-		
-		<div><span><i class="calendar icon"></i>Apr 27, 2018</span></div>
-		<div><span><i class="clock icon"></i>6 min read</span></div>
-	</ul>
 </div>
-<div class="color-overlay"></div>
-</article>
+			</article>
+		</section>
+		<section class="ui secondary attached segment dream-tags">
+			
+			<span>暂无标签</span>
+			
+		</section>
+		
+		<section class="ui secondary attached segment share row box">
+			<div class="author">
+	
+	<img class="avatar" src="https://richardwrq.github.io/images/avatar.jpg">
+	
+</div>
+<div class="info grow flexbox"> 
+	
+	<a href="https://twitter.com/WuRichard_">
+	
+	<p class="name">Richard Wu</p>
+	
+	</a>
+	
+	<p class="desc">A programmer.</p>		
+</div>
+<section class="buttons row box">
+	<div class="facebook none flexbox" href="#" onclick="window.open(
+			'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+			'facebook-share-dialog',
+			'width=626,height=436'); return false;">
+		<button class="ui facebook button"><i class="facebook icon"></i>Share</button>
+	</div>
+	<div class="twitter none flexbox" onclick="window.open('https://twitter.com/intent/tweet?text=Read &quot;注解处理器Annotation Processor中判断Java或Kotlin类 &quot; by @WuRichard_ https:\/\/richardwrq.github.io\/post\/judgejavaorkt\/','_self')">
+		<button class="ui twitter button"><i class="twitter icon"></i>Tweet</button>
+	</div>
+</section>
 
+		</section>
+		
+
+		
+		<section class="ui secondary bottom attached stacked segment disqus">
+			<div id="disqus_thread"></div>
+<script>
 	
 
+	var disqus_config = function () {
+		this.page.url = 'https:\/\/richardwrq.github.io\/post\/judgejavaorkt\/';  
+		this.page.identifier = '4846d5bb38cd3b99317d76c82867a6b8'; 
+   };
+	(function() { 
+   	var d = document, s = d.createElement('script');
+   	s.src = 'https://' + 'richardwu' + '.disqus.com/embed.js';
+   	s.setAttribute('data-timestamp', +new Date());
+   	(d.head || d.body).appendChild(s);
+	})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
-		</div>
+
+		</section>
+		
 	</div>
 </div>
 
@@ -395,6 +461,8 @@ var bodyBgSwitchIndex = 0;
 <script src="/js/site.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.js"></script>
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js"></script>
+
 
 	<script src="/js/twemoji.min.js"></script>
 
@@ -426,6 +494,12 @@ ga('send', 'pageview');
 
 
 	
+<script>
+		anchors.add('.post-content h1');
+		anchors.add('.post-content h2');
+		anchors.add('.post-content h3');
+</script>
+
 </body>
 
 </html>
