@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>开发工具 on RichardWu&#39;s Blog</title>
+    <link>https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/</link>
+    <description>Recent content in 开发工具 on RichardWu&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh</language>
+    <lastBuildDate>Wed, 21 Nov 2018 15:13:22 +0800</lastBuildDate>
+    
+	<atom:link href="https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>IntelliJ IDEA/Android Studio插件开发入门指南</title>
+      <link>https://richardwrq.github.io/2018/ideaplugin/</link>
+      <pubDate>Wed, 21 Nov 2018 15:13:22 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/ideaplugin/</guid>
+      <description>基于IntelliJ平台的产品都可以通过添加插件来丰富其原有的功能，JetBrains团队也我们提供了丰富的API来进行插件开发，所有的插件都可以在JetBrains Plugin Repository找到。常见的插件类型有：
+ 自定义语言支持（如Java、Kotlin） 框架集成 工具集成 用户界面插件  这些类型插件的介绍以及功能就不一一细说了，官网也有比较详细的介绍。 简单来说，IDEA也好Android Studio也好（以下统一称为IDE），它们为插件提供了运行环境，通过各种插件的配合来实现不同的功能。下面就先介绍开发IDEA插件前需要哪些准备。
+ 安装IDEA，如果想在开发插件的过程中进行Debug，那么还需要把IDEA的源码下载下来(Github源码地址) 配置IntelliJ Platform SDK，也就是开发插件所需的SDK，类似开发Android应用时需要Android SDK，并且插件都是运行在JVM上的，所以也需要配置JDK的路径 指定Sandbox Home目录，Sandbox Home目录用于存放插件项目实例的一些配置文件。在macOS系统中默认存放路径是/Users/{用户名}/Library/Caches/IdeaIC2018.2/plugins-sandbox  配置SDK，如果你把IDEA源码也下载了，那么还需要配置一下源码的路径 环境搭建好了，那么接下来我们就创建一个简易的插件工程，依次点击File-&amp;gt;New-&amp;gt;Project然后在弹出框左栏选择Gradle，然后在右侧一栏勾选IntelliJ Platform Plugin（如果想要使用Kotlin进行开发就把Kotlin那一项也勾选上） 项目创建好后长这样： 创建Action 插件可以自定义IDE的UI，在菜单或工具栏中新加入一个Item。SDK提供了一个类AnAction，这个类的actionPerformed方法在你每次在菜单栏中选中或在工具栏中点击对应项时都会被调用。创建一个Action只需要两步：
+ 定义派生于AnAction的类 注册Action  当然你也可以定义一组派生于AnAction的类
+定义Action 下面的代码是我仿照官方例子定义的一个Action，只是把Java改成了Kotlin实现
+class TextBoxes : AnAction(&amp;quot;Text _Boxes&amp;quot;) { override fun actionPerformed(e: AnActionEvent) { val project = e.getData(PlatformDataKeys.PROJECT)//这个Project是不是很熟悉？它其实跟Gradle中的Project意义是一样的 val txt = Messages.showInputDialog(project, &amp;quot;What is your name?&amp;quot;, &amp;quot;Input your name&amp;quot;, Messages.getQuestionIcon()) Messages.showMessageDialog(project, &amp;quot;Hello, $txt!\\n I am glad to see you.</description>
+    </item>
+    
+  </channel>
+</rss>

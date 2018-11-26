@@ -3,6 +3,16 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
     <url>
+      <loc>https://richardwrq.github.io/2018/ideaplugin/</loc>
+      
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
+      
+      
+      
+      
+    </url>
+  
+    <url>
       <loc>https://richardwrq.github.io/2018/judgejavaorkt/</loc>
       
       <lastmod>2018-04-27T19:45:50+08:00</lastmod>
@@ -75,7 +85,7 @@
     <url>
       <loc>https://richardwrq.github.io/posts/</loc>
       
-      <lastmod>2018-04-27T19:45:50+08:00</lastmod>
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
       
       
       
@@ -87,7 +97,7 @@
     <url>
       <loc>https://richardwrq.github.io/</loc>
       
-      <lastmod>2018-04-27T19:45:50+08:00</lastmod>
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
       
       
       
@@ -100,6 +110,42 @@
       <loc>https://richardwrq.github.io/tags/</loc>
       
       <lastmod>2018-04-27T12:35:27+08:00</lastmod>
+      
+      
+      
+      <priority>0</priority>
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://richardwrq.github.io/tags/tag1/</loc>
+      
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
+      
+      
+      
+      <priority>0</priority>
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://richardwrq.github.io/tags/tag2/</loc>
+      
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
+      
+      
+      
+      <priority>0</priority>
+      
+      
+    </url>
+  
+    <url>
+      <loc>https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/</loc>
+      
+      <lastmod>2018-11-21T15:13:22+08:00</lastmod>
       
       
       

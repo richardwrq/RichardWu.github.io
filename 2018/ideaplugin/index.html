@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="RichardWu">
+  
+  
+  
+  <link rel="prev" href="https://richardwrq.github.io/2018/judgejavaorkt/" />
+  
+  <link rel="canonical" href="https://richardwrq.github.io/2018/ideaplugin/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           IntelliJ IDEA/Android Studio插件开发入门指南 | RichardWu&#39;s Blog
+       
+  </title>
+  <meta name="title" content="IntelliJ IDEA/Android Studio插件开发入门指南 | RichardWu&#39;s Blog">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https://richardwrq.github.io/"
+    },
+    "articleSection" : "posts",
+    "name" : "IntelliJ IDEA/Android Studio插件开发入门指南",
+    "headline" : "IntelliJ IDEA/Android Studio插件开发入门指南",
+    "description" : "基于IntelliJ平台的产品都可以通过添加插件来丰富其原有的功能，JetBrains团队也我们提供了丰富的API来进行插件开发，所有的插件都可以在JetBrains Plugin Repository找到。常见的插件类型有：
+ 自定义语言支持（如Java、Kotlin） 框架集成 工具集成 用户界面插件  这些类型插件的介绍以及功能就不一一细说了，官网也有比较详细的介绍。 简单来说，IDEA也好Android Studio也好（以下统一称为IDE），它们为插件提供了运行环境，通过各种插件的配合来实现不同的功能。下面就先介绍开发IDEA插件前需要哪些准备。
+ 安装IDEA，如果想在开发插件的过程中进行Debug，那么还需要把IDEA的源码下载下来(Github源码地址) 配置IntelliJ Platform SDK，也就是开发插件所需的SDK，类似开发Android应用时需要Android SDK，并且插件都是运行在JVM上的，所以也需要配置JDK的路径 指定Sandbox Home目录，Sandbox Home目录用于存放插件项目实例的一些配置文件。在macOS系统中默认存放路径是/Users/{用户名}/Library/Caches/IdeaIC2018.2/plugins-sandbox  配置SDK，如果你把IDEA源码也下载了，那么还需要配置一下源码的路径 环境搭建好了，那么接下来我们就创建一个简易的插件工程，依次点击File-&gt;New-&gt;Project然后在弹出框左栏选择Gradle，然后在右侧一栏勾选IntelliJ Platform Plugin（如果想要使用Kotlin进行开发就把Kotlin那一项也勾选上） 项目创建好后长这样： 创建Action 插件可以自定义IDE的UI，在菜单或工具栏中新加入一个Item。SDK提供了一个类AnAction，这个类的actionPerformed方法在你每次在菜单栏中选中或在工具栏中点击对应项时都会被调用。创建一个Action只需要两步：
+ 定义派生于AnAction的类 注册Action  当然你也可以定义一组派生于AnAction的类
+定义Action 下面的代码是我仿照官方例子定义的一个Action，只是把Java改成了Kotlin实现
+class TextBoxes : AnAction(&quot;Text _Boxes&quot;) { override fun actionPerformed(e: AnActionEvent) { val project = e.getData(PlatformDataKeys.PROJECT)//这个Project是不是很熟悉？它其实跟Gradle中的Project意义是一样的 val txt = Messages.showInputDialog(project, &quot;What is your name?&quot;, &quot;Input your name&quot;, Messages.getQuestionIcon()) Messages.showMessageDialog(project, &quot;Hello, $txt!\\n I am glad to see you.",
+    "inLanguage" : "zh",
+    "author" : "RichardWu",
+    "creator" : "RichardWu",
+    "publisher": "RichardWu",
+    "accountablePerson" : "RichardWu",
+    "copyrightHolder" : "RichardWu",
+    "copyrightYear" : "2018",
+    "datePublished": "2018-11-21 15:13:22 &#43;0800 CST",
+    "dateModified" : "2018-11-21 15:13:22 &#43;0800 CST",
+    "url" : "https://richardwrq.github.io/2018/ideaplugin/",
+    "wordCount" : "285",
+    "keywords" : [ "tag1","tag2", "RichardWu&#39;s Blog"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">IntelliJ IDEA/Android Studio插件开发入门指南</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://richardwrq.github.io/" rel="author">RichardWu</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2018-11-21 itemprop="datePublished">November 21, 2018</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"> 开发工具 </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<p>基于IntelliJ平台的产品都可以通过添加插件来丰富其原有的功能，JetBrains团队也我们提供了丰富的API来进行插件开发，所有的插件都可以在<a href="https://plugins.jetbrains.com/" rel="nofollow noreferrer" target="_blank">JetBrains Plugin Repository</a>找到。常见的插件类型有：</p>
+
+<ul>
+<li>自定义语言支持（如Java、Kotlin）</li>
+<li>框架集成</li>
+<li>工具集成</li>
+<li>用户界面插件</li>
+</ul>
+
+<p>这些类型插件的介绍以及功能就不一一细说了，<a href="http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started.html" rel="nofollow noreferrer" target="_blank">官网</a>也有比较详细的介绍。
+简单来说，IDEA也好Android Studio也好（以下统一称为IDE），它们为插件提供了运行环境，通过各种插件的配合来实现不同的功能。下面就先介绍开发IDEA插件前需要哪些准备。</p>
+
+<ul>
+<li><a href="https://www.jetbrains.com/idea/?fromMenu" rel="nofollow noreferrer" target="_blank">安装IDEA</a>，如果想在开发插件的过程中进行Debug，那么还需要把IDEA的源码下载下来(<a href="https://github.com/JetBrains/intellij-community" rel="nofollow noreferrer" target="_blank">Github源码地址</a>)</li>
+<li>配置IntelliJ Platform SDK，也就是开发插件所需的SDK，类似开发Android应用时需要Android SDK，并且插件都是运行在JVM上的，所以也需要配置JDK的路径</li>
+<li>指定<strong>Sandbox Home</strong>目录，<strong>Sandbox Home</strong>目录用于存放插件项目实例的一些配置文件。在macOS系统中默认存放路径是<code>/Users/{用户名}/Library/Caches/IdeaIC2018.2/plugins-sandbox</code></li>
+</ul>
+
+<p>配置SDK，如果你把IDEA源码也下载了，那么还需要配置一下源码的路径
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/添加SDK.jpg" alt="添加SDK" class="lazyload"><figcaption class="image-caption">添加SDK</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/选择源码路径.jpg" alt="添加源码" class="lazyload"><figcaption class="image-caption">添加源码</figcaption></figure></p>
+
+<p>环境搭建好了，那么接下来我们就创建一个简易的插件工程，依次点击<code>File-&gt;New-&gt;Project</code>然后在弹出框左栏选择<code>Gradle</code>，然后在右侧一栏勾选<code>IntelliJ Platform Plugin</code>（如果想要使用Kotlin进行开发就把<code>Kotlin</code>那一项也勾选上）
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/新建插件项目.jpg" alt="新建插件" class="lazyload"><figcaption class="image-caption">新建插件</figcaption></figure>
+项目创建好后长这样：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/项目结构.jpg" alt="项目结构" class="lazyload"><figcaption class="image-caption">项目结构</figcaption></figure></p>
+
+<hr />
+
+<h1 id="创建action">创建Action</h1>
+
+<p>插件可以自定义IDE的UI，在菜单或工具栏中新加入一个Item。SDK提供了一个类<code>AnAction</code>，这个类的<code>actionPerformed</code>方法在你每次在菜单栏中选中或在工具栏中点击对应项时都会被调用。创建一个<strong>Action</strong>只需要两步：</p>
+
+<ul>
+<li>定义派生于AnAction的类</li>
+<li>注册Action</li>
+</ul>
+
+<p><code>当然你也可以定义一组派生于AnAction的类</code></p>
+
+<h1 id="定义action">定义Action</h1>
+
+<p>下面的代码是我仿照官方例子定义的一个Action，只是把Java改成了Kotlin实现</p>
+
+<pre><code class="language-Kotlin">class TextBoxes : AnAction(&quot;Text _Boxes&quot;) {
+
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.getData(PlatformDataKeys.PROJECT)//这个Project是不是很熟悉？它其实跟Gradle中的Project意义是一样的
+        val txt = Messages.showInputDialog(project, &quot;What is your name?&quot;, &quot;Input your name&quot;, Messages.getQuestionIcon())
+        Messages.showMessageDialog(project, &quot;Hello, $txt!\\n I am glad to see you.&quot;, &quot;Information&quot;, Messages.getInformationIcon())//这两段代码其实很简单，都不用解释了
+    }
+}
+</code></pre>
+
+<h1 id="注册action">注册Action</h1>
+
+<p>定义好<strong>Action</strong>之后当然就需要告知IDE你有哪些<strong>Action</strong>啦，所以就需要对这些<strong>Action</strong>进行注册，注册的方式有两种（是不是似曾相识的感觉？）。</p>
+
+<ul>
+<li>在<code>plugin.xml</code>文件的<code>&lt;actions&gt;</code>标签中进行注册</li>
+<li>在代码中进行注册</li>
+</ul>
+
+<h1 id="在plugin-xml文件中进行注册">在plugin.xml文件中进行注册</h1>
+
+<p>跟Android开发中在<code>AndroidManifest.xml</code>文件中注册组件非常相像，我们只需要按照<strong>IntelliJ</strong>平台的规范在<code>plugin.xml</code>文件的<code>&lt;actions&gt;</code>部分内容进行修改：</p>
+
+<pre><code class="language-xml">&lt;actions&gt;
+  &lt;group id=&quot;MyPlugin.SampleMenu&quot; text=&quot;_Sample Menu&quot; description=&quot;Sample menu&quot;&gt;
+    &lt;add-to-group group-id=&quot;MainMenu&quot; anchor=&quot;last&quot;  /&gt;
+       &lt;!--把这组Action加到&quot;MainMenu&quot;中--&gt;
+       &lt;action id=&quot;Myplugin.Textboxes&quot; class=&quot;Mypackage.TextBoxes&quot; text=&quot;Text _Boxes&quot; description=&quot;A test menu item&quot; /&gt;
+  &lt;/group&gt;
+&lt;/actions&gt;
+</code></pre>
+
+<p>下面对<code>plugin.xml</code>的规范做一些介绍：</p>
+
+<pre><code class="language-xml">&lt;!-- Actions --&gt;
+    &lt;actions&gt;
+    &lt;!-- &lt;action&gt;对Action进行注册，
+         &quot;id&quot;定义了这个Action的唯一识别id，
+         &quot;class&quot;用于指定该Action对应类的全路径，
+         &quot;text&quot;定义这个Action在菜单栏或者工具栏中显示的文本，前面加_表示在该字符下加下划线，
+         &quot;use-shortcut-of&quot; 可选项 指定使用和某一个Action一样的快捷键
+         &quot;description&quot; 可选项 对Action的描述（当你的鼠标指针停留在该item时就会显示该内容）
+         &quot;icon&quot;没啥好说的--&gt;
+    &lt;action id=&quot;VssIntegration.GarbageCollection&quot; class=&quot;com.foo.impl.CollectGarbage&quot; text=&quot;Collect _Garbage&quot; description=&quot;Run garbage collector&quot; icon=&quot;icons/garbage.png&quot;&gt;
+        &lt;!-- &lt;add-to-group&gt;节点表示指定Action被加入到已存在的一个组中，
+             &quot;group-id&quot;表示加入的组的id，
+             &quot;anchor&quot;指定Action相对于组中其他Action的位置，可以指定的值有&quot;first&quot;, &quot;last&quot;, &quot;before&quot;, &quot;after&quot;
+             &quot;relative-to-action&quot;如果把&quot;anchor&quot;的值设置为&quot;before&quot;或者&quot;after&quot;时，必须为该属性赋值，表示相对于某一个Action的位置--&gt;
+        &lt;add-to-group group-id=&quot;ToolsMenu&quot; relative-to-action=&quot;GenerateJavadoc&quot; anchor=&quot;after&quot;/&gt;
+        &lt;!-- &lt;keyboard-shortcut&gt;指定Action的快捷键
+             &quot;second-keystroke&quot;指定Action次选快捷键
+             &quot;keymap&quot;指定Action的快捷键映射到哪一个系统中，可以设定的值作为常量定义在
+             com.intellij.openapi.keymap.KeymapManager类中--&gt;
+        &lt;keyboard-shortcut first-keystroke=&quot;control alt G&quot; second-keystroke=&quot;C&quot; keymap=&quot;$default&quot;/&gt;
+        &lt;!-- 指定鼠标快捷键 --&gt;
+        &lt;mouse-shortcut keystroke=&quot;control button3 doubleClick&quot; keymap=&quot;$default&quot;/&gt;
+    &lt;/action&gt;
+</code></pre>
+
+<h1 id="使用代码进行注册">使用代码进行注册</h1>
+
+<p>使用代码注册其实也没什么少介绍的，贴一段官方代码大家就大致了解了，就是调用相应的api去做一些配置</p>
+
+<pre><code class="language-Java">public class MyPluginRegistration implements ApplicationComponent {
+  // Returns the component name (any unique string value).
+  @NotNull public String getComponentName() {
+    return &quot;MyPlugin&quot;;
+  }
+
+
+  // If you register the MyPluginRegistration class in the &lt;application-components&gt; section of
+  // the plugin.xml file, this method is called on IDEA start-up.
+  public void initComponent() {
+    ActionManager am = ActionManager.getInstance();
+    TextBoxes action = new TextBoxes();
+
+    // Passes an instance of your custom TextBoxes class to the registerAction method of the ActionManager class.
+    am.registerAction(&quot;MyPluginAction&quot;, action);
+
+    // Gets an instance of the WindowMenu action group.
+    DefaultActionGroup windowM = (DefaultActionGroup) am.getAction(&quot;WindowMenu&quot;);
+
+    // Adds a separator and a new menu command to the WindowMenu group on the main menu.
+    windowM.addSeparator();
+    windowM.add(action);
+  }
+
+  // Disposes system resources.
+  public void disposeComponent() {
+  }
+}
+</code></pre>
+
+<p>上面两种注册方式是不是都感觉挺麻烦，在AS中我们创建一个Activity的时候可以通过<code>File-&gt;New-&gt;Activity</code>来帮我们创建一个Activity，并且已经帮我们注册到<code>AndroidManifest.xml</code>中，甚至是布局文件也创建好了，那么IDEA能做到吗？答案是肯定的，而且步骤也大同小异：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/快速创建Action.jpg" alt="快速创建Action" class="lazyload"><figcaption class="image-caption">快速创建Action</figcaption></figure></p>
+
+<p>接下来我们点击运行或<code>Debug</code>即可看到运行效果
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/运行效果1.jpg" alt="运行效果1" class="lazyload"><figcaption class="image-caption">运行效果1</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/运行效果2.jpg" alt="运行效果2" class="lazyload"><figcaption class="image-caption">运行效果2</figcaption></figure>
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/IDEAPlugin/运行效果3.jpg" alt="运行效果3" class="lazyload"><figcaption class="image-caption">运行效果3</figcaption></figure></p>
+
+<p>到这里相信你也了解了怎么样去创建并运行一个简单的IDEA插件了，整个过程是不是和开发一个Android应用非常相像呢，其实都可以把他们看成是开发一个带UI界面的JVM应用程序，当你开发好一个插件之后，需要将其上传到远程仓库中以供他人使用，整个流程和发布一个第三方库也是大同小异。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>RichardWu </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://richardwrq.github.io/2018/ideaplugin/>https://richardwrq.github.io/2018/ideaplugin/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://richardwrq.github.io/tags/tag1/">
+                    #tag1</a></span>
+            
+            <span class="tag"><a href="https://richardwrq.github.io/tags/tag2/">
+                    #tag2</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://richardwrq.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://richardwrq.github.io/2018/judgejavaorkt/" class="prev" rel="prev" title="注解处理器Annotation Processor中判断Java或Kotlin类"><i class="iconfont icon-left"></i>&nbsp;注解处理器Annotation Processor中判断Java或Kotlin类</a>
+         
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2011 - 2018</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://richardwrq.github.io/">RichardWu</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+     <link href="//lib.baomitu.com/lightgallery/1.6.11/css/lightgallery.min.css" rel="stylesheet">  
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

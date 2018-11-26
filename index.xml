@@ -6,8 +6,165 @@
     <description>Recent content in RichardWu&#39;s Blog on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
-    <lastBuildDate>Fri, 27 Apr 2018 19:45:50 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 21 Nov 2018 15:13:22 +0800</lastBuildDate>
     <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>IntelliJ IDEA/Android Studio插件开发入门指南</title>
+      <link>https://richardwrq.github.io/2018/ideaplugin/</link>
+      <pubDate>Wed, 21 Nov 2018 15:13:22 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/ideaplugin/</guid>
+      <description>
+
+&lt;p&gt;基于IntelliJ平台的产品都可以通过添加插件来丰富其原有的功能，JetBrains团队也我们提供了丰富的API来进行插件开发，所有的插件都可以在&lt;a href=&#34;https://plugins.jetbrains.com/&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;JetBrains Plugin Repository&lt;/a&gt;找到。常见的插件类型有：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;自定义语言支持（如Java、Kotlin）&lt;/li&gt;
+&lt;li&gt;框架集成&lt;/li&gt;
+&lt;li&gt;工具集成&lt;/li&gt;
+&lt;li&gt;用户界面插件&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这些类型插件的介绍以及功能就不一一细说了，&lt;a href=&#34;http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started.html&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;官网&lt;/a&gt;也有比较详细的介绍。
+简单来说，IDEA也好Android Studio也好（以下统一称为IDE），它们为插件提供了运行环境，通过各种插件的配合来实现不同的功能。下面就先介绍开发IDEA插件前需要哪些准备。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.jetbrains.com/idea/?fromMenu&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;安装IDEA&lt;/a&gt;，如果想在开发插件的过程中进行Debug，那么还需要把IDEA的源码下载下来(&lt;a href=&#34;https://github.com/JetBrains/intellij-community&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;Github源码地址&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;配置IntelliJ Platform SDK，也就是开发插件所需的SDK，类似开发Android应用时需要Android SDK，并且插件都是运行在JVM上的，所以也需要配置JDK的路径&lt;/li&gt;
+&lt;li&gt;指定&lt;strong&gt;Sandbox Home&lt;/strong&gt;目录，&lt;strong&gt;Sandbox Home&lt;/strong&gt;目录用于存放插件项目实例的一些配置文件。在macOS系统中默认存放路径是&lt;code&gt;/Users/{用户名}/Library/Caches/IdeaIC2018.2/plugins-sandbox&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;配置SDK，如果你把IDEA源码也下载了，那么还需要配置一下源码的路径
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/添加SDK.jpg&#34; alt=&#34;添加SDK&#34; /&gt;
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/选择源码路径.jpg&#34; alt=&#34;添加源码&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;环境搭建好了，那么接下来我们就创建一个简易的插件工程，依次点击&lt;code&gt;File-&amp;gt;New-&amp;gt;Project&lt;/code&gt;然后在弹出框左栏选择&lt;code&gt;Gradle&lt;/code&gt;，然后在右侧一栏勾选&lt;code&gt;IntelliJ Platform Plugin&lt;/code&gt;（如果想要使用Kotlin进行开发就把&lt;code&gt;Kotlin&lt;/code&gt;那一项也勾选上）
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/新建插件项目.jpg&#34; alt=&#34;新建插件&#34; /&gt;
+项目创建好后长这样：
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/项目结构.jpg&#34; alt=&#34;项目结构&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&#34;创建action&#34;&gt;创建Action&lt;/h1&gt;
+
+&lt;p&gt;插件可以自定义IDE的UI，在菜单或工具栏中新加入一个Item。SDK提供了一个类&lt;code&gt;AnAction&lt;/code&gt;，这个类的&lt;code&gt;actionPerformed&lt;/code&gt;方法在你每次在菜单栏中选中或在工具栏中点击对应项时都会被调用。创建一个&lt;strong&gt;Action&lt;/strong&gt;只需要两步：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;定义派生于AnAction的类&lt;/li&gt;
+&lt;li&gt;注册Action&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;code&gt;当然你也可以定义一组派生于AnAction的类&lt;/code&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;定义action&#34;&gt;定义Action&lt;/h1&gt;
+
+&lt;p&gt;下面的代码是我仿照官方例子定义的一个Action，只是把Java改成了Kotlin实现&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Kotlin&#34;&gt;class TextBoxes : AnAction(&amp;quot;Text _Boxes&amp;quot;) {
+
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.getData(PlatformDataKeys.PROJECT)//这个Project是不是很熟悉？它其实跟Gradle中的Project意义是一样的
+        val txt = Messages.showInputDialog(project, &amp;quot;What is your name?&amp;quot;, &amp;quot;Input your name&amp;quot;, Messages.getQuestionIcon())
+        Messages.showMessageDialog(project, &amp;quot;Hello, $txt!\\n I am glad to see you.&amp;quot;, &amp;quot;Information&amp;quot;, Messages.getInformationIcon())//这两段代码其实很简单，都不用解释了
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;注册action&#34;&gt;注册Action&lt;/h1&gt;
+
+&lt;p&gt;定义好&lt;strong&gt;Action&lt;/strong&gt;之后当然就需要告知IDE你有哪些&lt;strong&gt;Action&lt;/strong&gt;啦，所以就需要对这些&lt;strong&gt;Action&lt;/strong&gt;进行注册，注册的方式有两种（是不是似曾相识的感觉？）。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;在&lt;code&gt;plugin.xml&lt;/code&gt;文件的&lt;code&gt;&amp;lt;actions&amp;gt;&lt;/code&gt;标签中进行注册&lt;/li&gt;
+&lt;li&gt;在代码中进行注册&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;在plugin-xml文件中进行注册&#34;&gt;在plugin.xml文件中进行注册&lt;/h1&gt;
+
+&lt;p&gt;跟Android开发中在&lt;code&gt;AndroidManifest.xml&lt;/code&gt;文件中注册组件非常相像，我们只需要按照&lt;strong&gt;IntelliJ&lt;/strong&gt;平台的规范在&lt;code&gt;plugin.xml&lt;/code&gt;文件的&lt;code&gt;&amp;lt;actions&amp;gt;&lt;/code&gt;部分内容进行修改：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-xml&#34;&gt;&amp;lt;actions&amp;gt;
+  &amp;lt;group id=&amp;quot;MyPlugin.SampleMenu&amp;quot; text=&amp;quot;_Sample Menu&amp;quot; description=&amp;quot;Sample menu&amp;quot;&amp;gt;
+    &amp;lt;add-to-group group-id=&amp;quot;MainMenu&amp;quot; anchor=&amp;quot;last&amp;quot;  /&amp;gt;
+       &amp;lt;!--把这组Action加到&amp;quot;MainMenu&amp;quot;中--&amp;gt;
+       &amp;lt;action id=&amp;quot;Myplugin.Textboxes&amp;quot; class=&amp;quot;Mypackage.TextBoxes&amp;quot; text=&amp;quot;Text _Boxes&amp;quot; description=&amp;quot;A test menu item&amp;quot; /&amp;gt;
+  &amp;lt;/group&amp;gt;
+&amp;lt;/actions&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;下面对&lt;code&gt;plugin.xml&lt;/code&gt;的规范做一些介绍：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-xml&#34;&gt;&amp;lt;!-- Actions --&amp;gt;
+    &amp;lt;actions&amp;gt;
+    &amp;lt;!-- &amp;lt;action&amp;gt;对Action进行注册，
+         &amp;quot;id&amp;quot;定义了这个Action的唯一识别id，
+         &amp;quot;class&amp;quot;用于指定该Action对应类的全路径，
+         &amp;quot;text&amp;quot;定义这个Action在菜单栏或者工具栏中显示的文本，前面加_表示在该字符下加下划线，
+         &amp;quot;use-shortcut-of&amp;quot; 可选项 指定使用和某一个Action一样的快捷键
+         &amp;quot;description&amp;quot; 可选项 对Action的描述（当你的鼠标指针停留在该item时就会显示该内容）
+         &amp;quot;icon&amp;quot;没啥好说的--&amp;gt;
+    &amp;lt;action id=&amp;quot;VssIntegration.GarbageCollection&amp;quot; class=&amp;quot;com.foo.impl.CollectGarbage&amp;quot; text=&amp;quot;Collect _Garbage&amp;quot; description=&amp;quot;Run garbage collector&amp;quot; icon=&amp;quot;icons/garbage.png&amp;quot;&amp;gt;
+        &amp;lt;!-- &amp;lt;add-to-group&amp;gt;节点表示指定Action被加入到已存在的一个组中，
+             &amp;quot;group-id&amp;quot;表示加入的组的id，
+             &amp;quot;anchor&amp;quot;指定Action相对于组中其他Action的位置，可以指定的值有&amp;quot;first&amp;quot;, &amp;quot;last&amp;quot;, &amp;quot;before&amp;quot;, &amp;quot;after&amp;quot;
+             &amp;quot;relative-to-action&amp;quot;如果把&amp;quot;anchor&amp;quot;的值设置为&amp;quot;before&amp;quot;或者&amp;quot;after&amp;quot;时，必须为该属性赋值，表示相对于某一个Action的位置--&amp;gt;
+        &amp;lt;add-to-group group-id=&amp;quot;ToolsMenu&amp;quot; relative-to-action=&amp;quot;GenerateJavadoc&amp;quot; anchor=&amp;quot;after&amp;quot;/&amp;gt;
+        &amp;lt;!-- &amp;lt;keyboard-shortcut&amp;gt;指定Action的快捷键
+             &amp;quot;second-keystroke&amp;quot;指定Action次选快捷键
+             &amp;quot;keymap&amp;quot;指定Action的快捷键映射到哪一个系统中，可以设定的值作为常量定义在
+             com.intellij.openapi.keymap.KeymapManager类中--&amp;gt;
+        &amp;lt;keyboard-shortcut first-keystroke=&amp;quot;control alt G&amp;quot; second-keystroke=&amp;quot;C&amp;quot; keymap=&amp;quot;$default&amp;quot;/&amp;gt;
+        &amp;lt;!-- 指定鼠标快捷键 --&amp;gt;
+        &amp;lt;mouse-shortcut keystroke=&amp;quot;control button3 doubleClick&amp;quot; keymap=&amp;quot;$default&amp;quot;/&amp;gt;
+    &amp;lt;/action&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;使用代码进行注册&#34;&gt;使用代码进行注册&lt;/h1&gt;
+
+&lt;p&gt;使用代码注册其实也没什么少介绍的，贴一段官方代码大家就大致了解了，就是调用相应的api去做一些配置&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-Java&#34;&gt;public class MyPluginRegistration implements ApplicationComponent {
+  // Returns the component name (any unique string value).
+  @NotNull public String getComponentName() {
+    return &amp;quot;MyPlugin&amp;quot;;
+  }
+
+
+  // If you register the MyPluginRegistration class in the &amp;lt;application-components&amp;gt; section of
+  // the plugin.xml file, this method is called on IDEA start-up.
+  public void initComponent() {
+    ActionManager am = ActionManager.getInstance();
+    TextBoxes action = new TextBoxes();
+
+    // Passes an instance of your custom TextBoxes class to the registerAction method of the ActionManager class.
+    am.registerAction(&amp;quot;MyPluginAction&amp;quot;, action);
+
+    // Gets an instance of the WindowMenu action group.
+    DefaultActionGroup windowM = (DefaultActionGroup) am.getAction(&amp;quot;WindowMenu&amp;quot;);
+
+    // Adds a separator and a new menu command to the WindowMenu group on the main menu.
+    windowM.addSeparator();
+    windowM.add(action);
+  }
+
+  // Disposes system resources.
+  public void disposeComponent() {
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面两种注册方式是不是都感觉挺麻烦，在AS中我们创建一个Activity的时候可以通过&lt;code&gt;File-&amp;gt;New-&amp;gt;Activity&lt;/code&gt;来帮我们创建一个Activity，并且已经帮我们注册到&lt;code&gt;AndroidManifest.xml&lt;/code&gt;中，甚至是布局文件也创建好了，那么IDEA能做到吗？答案是肯定的，而且步骤也大同小异：
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/快速创建Action.jpg&#34; alt=&#34;快速创建Action&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;接下来我们点击运行或&lt;code&gt;Debug&lt;/code&gt;即可看到运行效果
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/运行效果1.jpg&#34; alt=&#34;运行效果1&#34; /&gt;
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/运行效果2.jpg&#34; alt=&#34;运行效果2&#34; /&gt;
+&lt;img src=&#34;https://richardwrq.github.io/IDEAPlugin/运行效果3.jpg&#34; alt=&#34;运行效果3&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;到这里相信你也了解了怎么样去创建并运行一个简单的IDEA插件了，整个过程是不是和开发一个Android应用非常相像呢，其实都可以把他们看成是开发一个带UI界面的JVM应用程序，当你开发好一个插件之后，需要将其上传到远程仓库中以供他人使用，整个流程和发布一个第三方库也是大同小异。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>注解处理器Annotation Processor中判断Java或Kotlin类</title>
