@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RichardWu&#39;s Blog on RichardWu&#39;s Blog</title>
+    <link>https://richardwrq.github.io/</link>
+    <description>Recent content in RichardWu&#39;s Blog on RichardWu&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 27 Apr 2018 19:45:50 +0800</lastBuildDate>
+    <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>注解处理器Annotation Processor中判断Java或Kotlin类</title>
+      <link>https://richardwrq.github.io/2018/judgejavaorkt/</link>
+      <pubDate>Fri, 27 Apr 2018 19:45:50 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/judgejavaorkt/</guid>
+      <description>&lt;p&gt;在Android Studio中，项目编译build之后kapt会在项目的&lt;code&gt;build/tmp/kapt3/stubs&lt;/code&gt;目录下会生成kotlin编写的类的Java“存根类”，在这些类的顶部我们可以看到有这样一个注解&lt;code&gt;@kotlin.Metadata(...)&lt;/code&gt;
+ &lt;code&gt;@Metadata&lt;/code&gt;是 Kotlin 里比较特殊的一个注解。它记录了 Kotlin 代码元素的一些信息，比如 class 的可见性，function 的返回值，参数类型，property 的 lateinit，nullable 的属性等等。这些 Metadata 的信息由 kotlinc 生成，最终会以注解的形式存于 .class 文件。
+所以要在注解处理器判断一个类是kotlin语言或者Java语言编写的我们可以通过判断该类是否有&lt;code&gt;@Metadata&lt;/code&gt;注解来区分：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;    /**
+     * if true mean this class is java class
+     */
+    private fun isJavaFile(element: TypeElement): Boolean {
+        val tmMetadata = mElements.getTypeElement(&amp;quot;kotlin.Metadata&amp;quot;).asType()
+        return element.annotationMirrors.find { it.annotationType == tmMetadata } == null
+    }
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>使用Kotlin打造Android路由框架-Krouter</title>
+      <link>https://richardwrq.github.io/2018/krouter/</link>
+      <pubDate>Fri, 27 Apr 2018 12:35:27 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/krouter/</guid>
+      <description>
+
+&lt;p&gt;&lt;strong&gt;KRouter&lt;/strong&gt;(&lt;a href=&#34;https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。&lt;/a&gt;
+源码不复杂，在关键地方也有注释说明，建议打算或正在使用kapt+kotlinpoet遇到坑的同学可以fork一下项目，或许能找到你想要的答案，只要将整个流程了解清楚了，相信你自己也能撸一个轮子出来，目前许多开源框架&lt;code&gt;dagger&lt;/code&gt;、&lt;code&gt;butter knife&lt;/code&gt;、&lt;code&gt;greendao&lt;/code&gt;等实现原理都是一致的。
+####从startActivity开始说起
+在组件化开发的实践过程中，当我完成一个模块的开发后（比如说这个模块中有一个Activity或者Service供调用者调用），其他模块的开发者要启动我这个模块中的Activity的代码我们再熟悉不过了：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;    val intent = Intent(this, MainActivity::class.java)
+    intent.putExtra(&amp;quot;param1&amp;quot;, &amp;quot;1&amp;quot;)
+    intent.putExtra(&amp;quot;param2&amp;quot;, &amp;quot;2&amp;quot;)
+    startActivity(intent)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当然，其他模块的开发人员需要知道我们这个Activity的类名以及传入的参数对应的key值（上面的param1和param2），这时候我就想，在每一个需要启动这个页面的地方都存在着类似的样板代码，而且被启动的Activity在取出参数对属性进行赋值时的代码也比较繁琐，于是在网上查找相关资料了解到目前主流的路由框架（ARouter、Router等）都支持这些功能，秉着尽量不重复造轮子的观念我fork了ARouter项目，但是阅读源码后发现其暂时不支持Service的启动，而我负责的项目里面全是运行在后台的Service。。。紧接着也大概了解了一下其他一些框架，都存在一些不太满意的地方，考虑再三，干脆自己撸一个轮子出来好了。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;首先来看一段最简单的发起路由请求的代码(Java调用)：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;    KRouter.INSTANCE.create(&amp;quot;krouter/main/activity?test=32&amp;quot;)
+                    .withFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    .withString(&amp;quot;test2&amp;quot;, &amp;quot;this is test2&amp;quot;)
+                    .request();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其中&lt;code&gt;krouter/main/activity?test=32&lt;/code&gt;为对应的路由路径，可以使用类似http请求的格式，在问号后紧接着的是请求参数，这些参数最终会自动包装在intent的extras中，也可以通过调用&lt;code&gt;with&lt;/code&gt;开头的函数来配置请求参数。
+上面的代码执行后最终会启动一个Activity，准确来说是一个带有&lt;code&gt;@Route&lt;/code&gt;注解的Activity，它长这样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;    @Route(path = &amp;quot;krouter/main/activity&amp;quot;)
+    public class MainActivity extends Activity {
+        ...
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            getIntent().getIntExtra(&amp;quot;test&amp;quot;, -1);//这里可以获取到请求参数test
+        }
+        ...
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是一个最基本的功能，怎么样，看起来还不错吧？跟大部分路由框架的调用方式差不多。现在主流的路由框架是怎么做到的呢？下面就看我一一道来。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;在使用&lt;code&gt;KRouter&lt;/code&gt;的API前首先需要为一些类添加注解：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：用于标记可路由的组件
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Route(
+        /**
+         * Path of route
+         */
+        val path: String,
+        /**
+         * PathPrefix of route
+         */
+        val pathPrefix: String = &amp;quot;&amp;quot;,
+        /**
+         * PathPattern of route
+         */
+        val pathPattern: String = &amp;quot;&amp;quot;,
+        /**
+         * Name of route
+         */
+        val name: String = &amp;quot;undefined&amp;quot;,
+        /**
+         * Priority of route
+         */
+        val priority: Int = -1)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：用于拦截路由的拦截器
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Interceptor(
+        /**
+         * Priority of interceptor
+         */
+        val priority: Int = -1,
+        /**
+         * Name of interceptor
+         */
+        val name: String = &amp;quot;DefaultInterceptor&amp;quot;)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：属性注入
+ */
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Inject(
+        /**
+         * Name of property
+         */
+        val name: String = &amp;quot;&amp;quot;,
+        /**
+         * If true, app will be throws NPE when value is null
+         */
+        val isRequired: Boolean = false,
+        /**
+         * Description of the field
+         */
+        val desc: String = &amp;quot;No desc.&amp;quot;)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：Provider
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Provider(/**
+                           * Path of Provider
+                           */
+                          val value: String)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;被注解的元素的信息最终被保存在对应的数据类中：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/4
+ * Time: 上午10:46
+ * Version: v1.0
+ * Description：Route元数据，用于存储被[com.github.richardwrq.krouter.annotation.Route]注解的类的信息
+ */
+data class RouteMetadata(
+        /**
+         * Type of Route
+         */
+        val routeType: RouteType = RouteType.UNKNOWN,
+        /**
+         * Priority of route
+         */
+        val priority: Int = -1,
+        /**
+         * Name of route
+         */
+        val name: String = &amp;quot;undefine&amp;quot;,
+        /**
+         * Path of route
+         */
+        val path: String = &amp;quot;&amp;quot;,
+        /**
+         * PathPrefix of route
+         */
+        val pathPrefix: String = &amp;quot;&amp;quot;,
+        /**
+         * PathPattern of route
+         */
+        val pathPattern: String = &amp;quot;&amp;quot;,
+        /**
+         * Class of route
+         */
+        val clazz: Class&amp;lt;*&amp;gt; = Any::class.java)
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/8
+ * Time: 下午10:46
+ * Version: v1.0
+ * Description：Interceptor元数据，用于存储被[com.github.richardwrq.krouter.annotation.Interceptor]注解的类的信息
+ */
+data class InterceptorMetaData(
+        /**
+         * Priority of Interceptor
+         */
+        val priority: Int = -1,
+        /**
+         * Name of Interceptor
+         */
+        val name: String = &amp;quot;undefine&amp;quot;,
+        /**
+         * Class desc of Interceptor
+         */
+        val clazz: Class&amp;lt;*&amp;gt; = Any::class.java)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/3/14
+ * Time: 上午1:28
+ * Version: v1.0
+ * Description：Injector元数据，用于存储被[com.github.richardwrq.krouter.annotation.Inject]注解的类的信息
+ */
+data class InjectorMetaData(
+        /**
+         * if true, throw NPE when the filed is null
+         */
+        val isRequired: Boolean = false,
+        /**
+         * key
+         */
+        val key: String = &amp;quot;&amp;quot;,
+        /**
+         * field name
+         */
+        val fieldName: String = &amp;quot;&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其中被&lt;strong&gt;@Route&lt;/strong&gt;注解的类是Android中的四大组件和Fragment或者它们的子类（目前尚不支持Broadcast以及ContentProvider），被&lt;strong&gt;@Route&lt;/strong&gt;注解的对象目前有3种处理方式：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;若被注解的类是Activity的子类，那么最终的处理方式是startActivity；&lt;/li&gt;
+&lt;li&gt;若被注解的类是Service的子类，最终的处理方式有两种，也就  是Android中启动Service的两种方式，使用哪种启动方式取决于是否调用了&lt;code&gt;withServiceConn&lt;/code&gt;函数添加了ServiceConnection；&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;若被注解的类是Fragment的子类，最终的处理方式是调用无参构造函数构造出这个类的实例，并调用&lt;code&gt;setArguments(Bundle args)&lt;/code&gt;将请求参数传入Fragment的bundle中，最后返回该实例&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;被&lt;strong&gt;@Interceptor&lt;/strong&gt;注解的类需实现&lt;strong&gt;IRouteInterceptor&lt;/strong&gt;接口，这些类主要处理是否拦截路由的逻辑，比如某些需要登录才能启动的组件，就可以用到拦截器
+&lt;strong&gt;@Inject&lt;/strong&gt;用于标记需要被注入的属性
+被&lt;strong&gt;@Provider&lt;/strong&gt;注解的类最终可以调用&lt;code&gt;KRouter.getProvider(path: String)&lt;/code&gt;方法获取该类的对象，如果该类实现了&lt;strong&gt;IProvider&lt;/strong&gt;接口，那么&lt;code&gt;init(context: Context)&lt;/code&gt;方法将被调用
+这些注解最终都不会被编译进class文件中，在编译时期这些注解会被收集起来最终交由不同的Annotation Processor去处理。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;KRouter&lt;/strong&gt;路由框架分为3个模块：
+- &lt;strong&gt;KRouter-api&lt;/strong&gt;模块，作为SDK提供API供应用调用，调用&lt;strong&gt;KRouter-compiler&lt;/strong&gt;模块生成的类中的方法加载路由表，处理路由请求
+- &lt;strong&gt;KRouter-compiler&lt;/strong&gt;模块，各种注解对应的Processor的集合，编译期运行，负责收集路由组件，并生成kotlin代码
+- &lt;strong&gt;KRouter-gradle-plugin&lt;/strong&gt;模块，自定义gradle插件，在项目构建时期添加相关依赖以及相关参数的配置&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://upload-images.jianshu.io/upload_images/745509-d2b8cacc05798b3f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240&#34; alt=&#34;各模块运行时期.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;#####KRouter-compiler
+在介绍该模块之前如果有同学不知道&lt;strong&gt;Annotation Processor&lt;/strong&gt;的话建议先阅读 &lt;a href=&#34;http://blog.csdn.net/hj7jay/article/details/52180023&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;Annotation Processing-Tool详解&lt;/a&gt;， &lt;a href=&#34;http://blog.csdn.net/u013045971/article/details/53509237&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;一小时搞明白注解处理器（Annotation Processor Tool）&lt;/a&gt;这两篇文章，简单来说，APT就是&lt;code&gt;javac&lt;/code&gt;提供的一个插件，它会搜集被指定注解所注解的元素（类、方法或者属性），最终将搜集到的这些交给注解处理器&lt;strong&gt;Annotation Processor&lt;/strong&gt;进行处理，注解处理器通常会生成一些新的代码（推荐大名鼎鼎的square团队造的轮子&lt;strong&gt;&lt;a href=&#34;https://github.com/square/javapoet&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;javapoet&lt;/a&gt;&lt;/strong&gt;，这个开源库提供了非常友好的API让我们去生成Java代码），这些新生成的代码会与源码一起在同一个编译时期进行编译。
+但是&lt;strong&gt;Annotation Processor&lt;/strong&gt;是&lt;code&gt;javac&lt;/code&gt;提供的一个插件，也就是说它只认识Java代码，它压根不知道kotlin是什么，所以如果是用kotlin编写的代码文件最终将会被&lt;code&gt;javac&lt;/code&gt;给忽略，所幸的是JetBrains在2015年就推出了&lt;a href=&#34;https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;kapt&lt;/a&gt;来解决这一问题。而且既然有javapoet，那square那么牛逼的团队肯定也会造一个生成kotlin代码的轮子吧，果不其然，在github一搜kotlinpoet，还真有，所以最终决定&lt;strong&gt;KRouter-compiler&lt;/strong&gt;模块使用&lt;strong&gt;kapt&lt;/strong&gt;+&lt;strong&gt;&lt;a href=&#34;https://github.com/square/kotlinpoet&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;kotlinpoet&lt;/a&gt;&lt;/strong&gt;来自动生成代码（kotlinpoet文档过于简单了，建议使用该库的同学通过它的测试用例或者参照Javapoet文档了解API的调用）。&lt;/p&gt;
+
+&lt;p&gt;开头的例子中我们可以看到使用&lt;strong&gt;KRouter&lt;/strong&gt;启动一个Activity只需要知道该Activity的路径即可，并不需要像Android原生的启动方式一样传入&lt;code&gt;Class&amp;lt;*&amp;gt;&lt;/code&gt;或者&lt;code&gt;Class Name&lt;/code&gt;，那么&lt;strong&gt;KRouter&lt;/strong&gt;是怎么做到的呢？
+原理很简单，&lt;strong&gt;KRouter-compiler&lt;/strong&gt;模块生了初始化&lt;code&gt;路由表&lt;/code&gt;的代码，这些&lt;code&gt;路由表&lt;/code&gt;内部其实就是一个个map，这些map以路径path作为key，数据类作为value（比如&lt;strong&gt;RouteMetadata&lt;/strong&gt;），SDK内部会通过path获取到数据类，像开头启动Activity的例子中，SDK就通过path获取到一个&lt;strong&gt;RouteMetadata&lt;/strong&gt;对象，在这个对象中取出被注解的类的&lt;code&gt;Class&amp;lt;*&amp;gt;&lt;/code&gt;，有了这个&lt;code&gt;Class&amp;lt;*&amp;gt;&lt;/code&gt;就可以完成启动Activity的操作。
+接下来说说&lt;code&gt;路由表&lt;/code&gt;初始化代码生成之后是怎么被执行的，首先我定义了这样一些接口：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;/**
+ * 加载路由
+ *
+ * @author: Wuruiqiang &amp;lt;a href=&amp;quot;mailto:263454190@qq.com&amp;quot;&amp;gt;Contact me.&amp;lt;/a&amp;gt;
+ * @version: v1.0
+ * @since: 18/1/4 下午6:38
+ */
+interface IRouteLoader {
+    fun loadInto(map: MutableMap&amp;lt;String, RouteMetadata&amp;gt;)
+}
+
+/**
+ * 加载拦截器
+ *
+ * @author: Wuruiqiang &amp;lt;a href=&amp;quot;mailto:263454190@qq.com&amp;quot;&amp;gt;Contact me.&amp;lt;/a&amp;gt;
+ * @version: v1.0
+ * @since: 18/1/5 上午9:12
+ */
+interface IInterceptorLoader {
+    fun loadInto(map: TreeMap&amp;lt;Int, InterceptorMetaData&amp;gt;)
+}
+
+/**
+ * 加载Provider
+ *
+ * @author: Wuruiqiang &amp;lt;a href=&amp;quot;mailto:263454190@qq.com&amp;quot;&amp;gt;Contact me.&amp;lt;/a&amp;gt;
+ * @version: v1.0
+ * @since: 18/1/5 上午9:12
+ */
+interface IProviderLoader {
+    fun loadInto(map: MutableMap&amp;lt;String, Class&amp;lt;*&amp;gt;&amp;gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;以&lt;strong&gt;@Route&lt;/strong&gt;注解为例，在&lt;strong&gt;KRouter-compiler&lt;/strong&gt;中定义了一个继承自&lt;strong&gt;AbstractProcessor&lt;/strong&gt;的类&lt;strong&gt;RouteProcessor&lt;/strong&gt;，在编译期间编译器会收集&lt;strong&gt;@Route&lt;/strong&gt;注解的元素的信息然后交由&lt;strong&gt;RouteProcessor&lt;/strong&gt;处理，&lt;strong&gt;RouteProcessor&lt;/strong&gt;会生成一个实现了&lt;strong&gt;IRouteLoader&lt;/strong&gt;接口的类，在&lt;code&gt;loadInto&lt;/code&gt;方法中把注解中的元数据与被注解的元素的部分信息存到&lt;strong&gt;RouteMetadata&lt;/strong&gt;对象，然后将注解的路径path作为key，&lt;strong&gt;RouteMetadata&lt;/strong&gt;对象作为value保存在一个map当中。生成的代码如下（项目build之后可以在&lt;code&gt;(module)/build/generated/source/kaptKotlin/(buildType)&lt;/code&gt;目录下找到这些自动生成的类）：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;/**
+ *    ***************************************************
+ *    * THIS CODE IS GENERATED BY KRouter, DO NOT EDIT. *
+ *    ***************************************************
+ */
+class KRouter_RouteLoader_app : IRouteLoader {
+    override fun loadInto(map: MutableMap&amp;lt;String, RouteMetadata&amp;gt;) {
+        map[&amp;quot;krouter/sample/MainActivity&amp;quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &amp;quot;undefined&amp;quot;, &amp;quot;krouter/sample/MainActivity&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, MainActivity::class.java)
+        map[&amp;quot;myfragment&amp;quot;] = RouteMetadata(RouteType.FRAGMENT_V4, -1, &amp;quot;undefined&amp;quot;, &amp;quot;myfragment&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, MainActivity.MyFragment::class.java)
+        map[&amp;quot;krouter/sample/fragment1&amp;quot;] = RouteMetadata(RouteType.FRAGMENT, -1, &amp;quot;undefined&amp;quot;, &amp;quot;krouter/sample/fragment1&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, Fragment1::class.java)
+        map[&amp;quot;krouter/sample/fragment2&amp;quot;] = RouteMetadata(RouteType.FRAGMENT, -1, &amp;quot;undefined&amp;quot;, &amp;quot;krouter/sample/fragment2&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, Fragment2::class.java)
+        map[&amp;quot;krouter/sample/Main2Activity&amp;quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &amp;quot;undefined&amp;quot;, &amp;quot;krouter/sample/Main2Activity&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, Main2Activity::class.java)
+        map[&amp;quot;krouter/sample/Main3Activity&amp;quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &amp;quot;undefined&amp;quot;, &amp;quot;krouter/sample/Main3Activity&amp;quot;, &amp;quot;&amp;quot;, &amp;quot;&amp;quot;, Main3Activity::class.java)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;代码生成之后，我们需要执行&lt;code&gt;loadInto&lt;/code&gt;方法才算是把数据存入到map中去，我们可以通过&lt;code&gt;Class.forName(ClassName).newInstance()&lt;/code&gt;获取该类实例，然后将其强制转换为&lt;strong&gt;IRouteLoader&lt;/strong&gt;类型，接着调用&lt;code&gt;loadInto&lt;/code&gt;方法传入map即可，现在问题来了，加载一个类我们需要知道这个类的路径和名称：&lt;code&gt;com.x.y.ClassA&lt;/code&gt;，但是SDK并不知道&lt;strong&gt;KRouter-compiler&lt;/strong&gt;会生成哪些类。
+为此我准备了两种解决方案：
+1. 类似&lt;code&gt;ARouter&lt;/code&gt;的做法，扫描所有dex文件，找出实现了&lt;code&gt;ARouter&lt;/code&gt;接口的类，然后将这些类的ClassName缓存至本地，下次应用启动时如果存在缓存且没有新增文件则读取缓存内容即可；
+2. 第二种是生成的类及其路径遵循一定的规则，比如由&lt;strong&gt;RouteProcessor&lt;/strong&gt;生成的类路径规定为&lt;code&gt;com.github.richardwrq.krouter&lt;/code&gt;，类名规定以“KRouter_RouteLoader_”作为开头然后拼接上Module名称（以Module名称作为后缀是避免在不同的Module下生成类名一样的类，导致编译时出现类重复定义异常），所以&lt;strong&gt;RouteProcessor&lt;/strong&gt;名称为&lt;code&gt;app&lt;/code&gt;的Module下生成的类就是&lt;code&gt;com.github.richardwrq.krouter.KRouter_RouteLoader_app&lt;/code&gt;，在程序运行的时候，我们的SDK只需要获取项目中所有Module的名称，然后依次加载它们并执行&lt;code&gt;loadInto&lt;/code&gt;方法即可。&lt;/p&gt;
+
+&lt;p&gt;基于性能考虑我采取了第二种方案，这就需要解决一个问题，因为&lt;strong&gt;RouteProcessor&lt;/strong&gt;是无法知道当前是处于哪个Module的，所以我们需要在Module的&lt;code&gt;build.gradle&lt;/code&gt;做如下配置：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;kapt {
+    arguments {
+        arg(&amp;quot;moduleName&amp;quot;, project.getName())
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样我们就配置了一个名为“moduleName”的参数，它的值就是当前Module的名称。这个参数可以在&lt;strong&gt;ProcessingEnvironment&lt;/strong&gt;的&lt;code&gt;getOptions()&lt;/code&gt;方法获取的map中取出，
+&lt;strong&gt;Route&lt;/strong&gt;、&lt;strong&gt;Interceptor&lt;/strong&gt;、&lt;strong&gt;Provider&lt;/strong&gt;三者的处理流程大致相同，就不一一赘述了。
+在这里提一下关于依赖注入&lt;strong&gt;Inject&lt;/strong&gt;的实现，关于如何对属性进行注入我想了两种解决方案：
+1. 第一种就是通过反射，了解反射的同学都知道可以通过反射获取类的运行时注解，并且通过反射API为类的属性进行赋值，但由于时反射，所以性能上有所损耗，但是可以无视属性的访问权限；
+2. 第二种是生成需要被注入的类的扩展方法，在扩展方法里面对接收者的属性进行赋值，性能更好，但是缺点是无法对private以及protected成员进行赋值。&lt;/p&gt;
+
+&lt;p&gt;一开始是希望偷懒，就选择了第一种方案，但是问题来了，我知道Java的反射会有一些性能上的问题，但速度还不至于让用户感知明显，但是当我调用kotlin反射相关API时（最主要是获取Properties相关API），发现第一次调用花费的在4~5s 左右，之后调用速度是毫秒级的，我猜测是第一次调用加载了大量数据，然后将这些数据缓存起来了，但这4~5s的调用时间实在是恶心，所以最终还是决定采用方案2，有兴趣的同学可以查看&lt;code&gt;com/github/richardwrq/krouter/compiler/processor/RouteProcessor.kt&lt;/code&gt;，生成的代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-kotlin&#34;&gt;class com_github_richardwrq_krouter_activity_Main2Activity_KRouter_Injector : IInjector {
+    override fun inject(any: Any, extras: Bundle?) {
+        val bundle = getBundle(any, extras)//getBundle为自动生成的顶层方法
+        (any as Main2Activity).exInject(bundle)
+    }
+
+    private fun Main2Activity.exInject(bundle: Bundle) {
+        person = bundle.get(&amp;quot;person&amp;quot;) as? Person ?: KRouter.getProvider&amp;lt;Person&amp;gt;(&amp;quot;person&amp;quot;) ?: parseObject(bundle.getString(&amp;quot;person&amp;quot;), object : TypeToken&amp;lt;Person&amp;gt;() {}.getType()) ?: throw java.lang.NullPointerException(&amp;quot;Field [person] must not be null in [Main2Activity]!&amp;quot;)//parseObject为自动生成的顶层方法
+        provider = bundle.get(&amp;quot;NoImplProvider&amp;quot;) as? NoImplProvider ?: KRouter.getProvider&amp;lt;NoImplProvider&amp;gt;(&amp;quot;NoImplProvider&amp;quot;) ?: parseObject(bundle.getString(&amp;quot;NoImplProvider&amp;quot;), object : TypeToken&amp;lt;NoImplProvider&amp;gt;() {}.getType()) ?: throw java.lang.NullPointerException(&amp;quot;Field [provider] must not be null in [Main2Activity]!&amp;quot;)
+        myProvider = (KRouter.getProvider&amp;lt;MyProvider&amp;gt;(&amp;quot;provider/myprovider&amp;quot;)) ?: throw java.lang.NullPointerException(&amp;quot;Field [myProvider] must not be null in [Main2Activity]!&amp;quot;)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;生成的类路径与扩展方法接收者的类路径相同（解决Java包内访问权限问题），类名命名规则为扩展方法接收者类路径的“.“替换为”_“作为前缀，后缀为”_KRouter_Injector“，比如被被注入的类是&lt;code&gt;com.github.richardwrq.krouter.activity.Main2Activity&lt;/code&gt;，那么自动生成的类为&lt;code&gt;com.github.richardwrq.krouter.activity.com_github_richardwrq_krouter_activity_Main2Activity_KRouter_Injector&lt;/code&gt;
+#####KRouter-api
+该模块其实就是提供API给用户调用的SDK
+上面提到SDK需要执行&lt;strong&gt;KRouter-compiler&lt;/strong&gt;模块类的代码才能真正完成路由表初始化的工作，由于最终编译器会将所有Module打包成一个apk，所以在APP运行时是不存在Module的概念的，但是按照解决方案2各Module生成的类会以Module名称作为后缀，因此必须想办法让SDK获取到项目中所有Module的名称，考虑再三，我采取的解决方案是从&lt;code&gt;assets&lt;/code&gt;目录入手，在项目构建时期创建一个task，这个task会在Module的&lt;code&gt;src/main/assets&lt;/code&gt;目录下生成一个“KRouter&lt;em&gt;ModuleName”的文件，在SDK初始化的时候只需要列出&lt;code&gt;assets&lt;/code&gt;目录下所有&amp;rdquo;KRouter&lt;/em&gt;&amp;ldquo;开头的文件并截取下划线“_”后的内容，即可得到一个包含所有Module名称的列表。
+下面给出SDK的类图，同学们可以对照源码参考
+&lt;img src=&#34;https://upload-images.jianshu.io/upload_images/745509-9e7ee15fad22c478.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240&#34; alt=&#34;KRouter-api类图.png&#34; /&gt;
+#####KRouter-gradle-plugin
+完成上述两个模块后其实&lt;code&gt;KRouter&lt;/code&gt;框架已经可以正常使用了，引用方式如下：
+在各Module的&lt;code&gt;build.gradle&lt;/code&gt;加入下面的代码&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;kapt {
+    arguments {
+        arg(&amp;quot;moduleName&amp;quot;, project.getName())
+    }
+}
+dependencies {
+    implementation &#39;com.github.richardwrq:krouter-api:x.y.z’
+    kapt &#39;com.github.richardwrq:krouter-compiler:x.y.z&#39;
+}
+afterEvaluate {
+    //在assets目录创建文件的task
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当项目中Module较多时，手动在每一个Module加入这些配置未免有些蠢。。所以我写了一个gradle插件用来自动完成这些配置工作，具体实现参考源码，逻辑非常简单，最后使用引用方式变成下面这样：
+在项目根目录&lt;code&gt;build.gradle&lt;/code&gt;文件加入如下配置&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;buildscript {
+
+    dependencies {
+        classpath &amp;quot;org.jetbrains.kotlin:kotlin-gradle-plugin:x.y.z&amp;quot;
+        classpath &amp;quot;com.github.richardwrq:krouter-gradle-plugin:x.y.z&amp;quot;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后在各Module的&lt;code&gt;build.gradle&lt;/code&gt;文件加入如下配置&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;apply plugin: &#39;kotlin-android&#39;
+apply plugin: &#39;kotlin-kapt&#39;
+apply plugin: &amp;quot;com.github.richardwrq.krouter&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;到这里&lt;code&gt;KRouter&lt;/code&gt;路由框架就粗略的介绍了一遍，由于&lt;code&gt;kapt&lt;/code&gt;仍在不断完善，所以使用过程中难免碰到一些坑或者本身API功能不够完善，下面就列举一些遇到的问题以及解决方法：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.jianshu.com/p/f1ca4314f804&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;注解处理器Annotation Processor中判断Java或kotlin类&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.jianshu.com/p/f41d21850cb4&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;使用kotlinpoet生成kotlin代码数据类型不正确的问题&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;todolist&#34;&gt;ToDoList&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;通过gradle插件修改&lt;code&gt;AndroidManifest.xml&lt;/code&gt;文件，自动注册路由组件（Activity、Service）&lt;/li&gt;
+&lt;li&gt;目前尚不支持动态加载的插件的路由注册，但有解决方案，hook classloader装载方法，在加载dex文件时扫描&lt;code&gt;KRouter&lt;/code&gt;的路由组件&lt;/li&gt;
+&lt;li&gt;支持多应用多进程环境下的页面路&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://richardwrq.github.io/404/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://richardwrq.github.io/404/</guid>
+      <description>
+
+&lt;h1 id=&#34;error-404-page-not-found&#34;&gt;Error 404: Page Not Found&lt;/h1&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;it-seems-that-the-page-that-you-re-trying-to-access-doesn-t-exist&#34;&gt;It seems that the page that you&amp;rsquo;re trying to access doesn&amp;rsquo;t exist. 😟&lt;/h4&gt;
+
+&lt;h4 id=&#34;if-you-re-sure-that-it-exists-chances-are-it-might-have-been-moved-to-a-new-link-you-may-search-for-it-on-the-home-page&#34;&gt;If you&amp;rsquo;re sure that it exists, chances are it might have been moved to a new link! You may search for it on the home page.&lt;/h4&gt;
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://richardwrq.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://richardwrq.github.io/about/</guid>
+      <description>&lt;p&gt;一个程序员&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

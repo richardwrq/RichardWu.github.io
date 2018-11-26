@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="RichardWu">
+  
+  
+  
+  
+  <link rel="next" href="https://richardwrq.github.io/2018/judgejavaorkt/" />
+  <link rel="canonical" href="https://richardwrq.github.io/2018/krouter/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           使用Kotlin打造Android路由框架-Krouter | RichardWu&#39;s Blog
+       
+  </title>
+  <meta name="title" content="使用Kotlin打造Android路由框架-Krouter | RichardWu&#39;s Blog">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https://richardwrq.github.io/"
+    },
+    "articleSection" : "posts",
+    "name" : "使用Kotlin打造Android路由框架-Krouter",
+    "headline" : "使用Kotlin打造Android路由框架-Krouter",
+    "description" : "KRouter(https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。 源码不复杂，在关键地方也有注释说明，建议打算或正在使用kapt+kotlinpoet遇到坑的同学可以fork一下项目，或许能找到你想要的答案，只要将整个流程了解清楚了，相信你自己也能撸一个轮子出来，目前许多开源框架dagger、butter knife、greendao等实现原理都是一致的。 ####从startActivity开始说起 在组件化开发的实践过程中，当我完成一个模块的开发后（比如说这个模块中有一个Activity或者Service供调用者调用），其他模块的开发者要启动我这个模块中的Activity的代码我们再熟悉不过了：
+val intent = Intent(this, MainActivity::class.java) intent.putExtra(&quot;param1&quot;, &quot;1&quot;) intent.putExtra(&quot;param2&quot;, &quot;2&quot;) startActivity(intent)  当然，其他模块的开发人员需要知道我们这个Activity的类名以及传入的参数对应的key值（上面的param1和param2），这时候我就想，在每一个需要启动这个页面的地方都存在着类似的样板代码，而且被启动的Activity在取出参数对属性进行赋值时的代码也比较繁琐，于是在网上查找相关资料了解到目前主流的路由框架（ARouter、Router等）都支持这些功能，秉着尽量不重复造轮子的观念我fork了ARouter项目，但是阅读源码后发现其暂时不支持Service的启动，而我负责的项目里面全是运行在后台的Service。。。紧接着也大概了解了一下其他一些框架，都存在一些不太满意的地方，考虑再三，干脆自己撸一个轮子出来好了。
+首先来看一段最简单的发起路由请求的代码(Java调用)：
+KRouter.INSTANCE.create(&quot;krouter/main/activity?test=32&quot;) .withFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) .withString(&quot;test2&quot;, &quot;this is test2&quot;) .request();  其中krouter/main/activity?test=32为对应的路由路径，可以使用类似http请求的格式，在问号后紧接着的是请求参数，这些参数最终会自动包装在intent的extras中，也可以通过调用with开头的函数来配置请求参数。 上面的代码执行后最终会启动一个Activity，准确来说是一个带有@Route注解的Activity，它长这样：
+@Route(path = &quot;krouter/main/activity&quot;) public class MainActivity extends Activity { ... @Override protected void onCreate(Bundle savedInstanceState) { super.onCreate(savedInstanceState); setContentView(R.layout.activity_main); getIntent().getIntExtra(&quot;test&quot;, -1);//这里可以获取到请求参数test } ... }  这是一个最基本的功能，怎么样，看起来还不错吧？跟大部分路由框架的调用方式差不多。现在主流的路由框架是怎么做到的呢？下面就看我一一道来。
+在使用KRouter的API前首先需要为一些类添加注解：
+/** * User: WuRuiqiang(263454190@qq.com) * Date: 18/1/2 * Time: 上午10:53 * Version: v1.0 * Description：用于标记可路由的组件 */ @Target(AnnotationTarget.",
+    "inLanguage" : "zh",
+    "author" : "RichardWu",
+    "creator" : "RichardWu",
+    "publisher": "RichardWu",
+    "accountablePerson" : "RichardWu",
+    "copyrightHolder" : "RichardWu",
+    "copyrightYear" : "2018",
+    "datePublished": "2018-04-27 12:35:27 &#43;0800 CST",
+    "dateModified" : "2018-04-27 12:35:27 &#43;0800 CST",
+    "url" : "https://richardwrq.github.io/2018/krouter/",
+    "wordCount" : "835",
+    "keywords" : [ "Android","Kotlin","路由框架", "RichardWu&#39;s Blog"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">使用Kotlin打造Android路由框架-Krouter</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://richardwrq.github.io/" rel="author">RichardWu</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2018-04-27 itemprop="datePublished">April 27, 2018</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://richardwrq.github.io/categories/%E5%BC%80%E6%BA%90%E5%BA%93/"> 开源库 </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<p><strong>KRouter</strong>(<a href="https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。" rel="nofollow noreferrer" target="_blank">https://github.com/richardwrq/KRouter)路由框架借助gradle插件、[kapt](https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/)实现了依赖注入、为Android平台页面启动提供路由功能。</a>
+源码不复杂，在关键地方也有注释说明，建议打算或正在使用kapt+kotlinpoet遇到坑的同学可以fork一下项目，或许能找到你想要的答案，只要将整个流程了解清楚了，相信你自己也能撸一个轮子出来，目前许多开源框架<code>dagger</code>、<code>butter knife</code>、<code>greendao</code>等实现原理都是一致的。
+####从startActivity开始说起
+在组件化开发的实践过程中，当我完成一个模块的开发后（比如说这个模块中有一个Activity或者Service供调用者调用），其他模块的开发者要启动我这个模块中的Activity的代码我们再熟悉不过了：</p>
+
+<pre><code class="language-kotlin">    val intent = Intent(this, MainActivity::class.java)
+    intent.putExtra(&quot;param1&quot;, &quot;1&quot;)
+    intent.putExtra(&quot;param2&quot;, &quot;2&quot;)
+    startActivity(intent)
+</code></pre>
+
+<p>当然，其他模块的开发人员需要知道我们这个Activity的类名以及传入的参数对应的key值（上面的param1和param2），这时候我就想，在每一个需要启动这个页面的地方都存在着类似的样板代码，而且被启动的Activity在取出参数对属性进行赋值时的代码也比较繁琐，于是在网上查找相关资料了解到目前主流的路由框架（ARouter、Router等）都支持这些功能，秉着尽量不重复造轮子的观念我fork了ARouter项目，但是阅读源码后发现其暂时不支持Service的启动，而我负责的项目里面全是运行在后台的Service。。。紧接着也大概了解了一下其他一些框架，都存在一些不太满意的地方，考虑再三，干脆自己撸一个轮子出来好了。</p>
+
+<hr />
+
+<p>首先来看一段最简单的发起路由请求的代码(Java调用)：</p>
+
+<pre><code class="language-kotlin">    KRouter.INSTANCE.create(&quot;krouter/main/activity?test=32&quot;)
+                    .withFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    .withString(&quot;test2&quot;, &quot;this is test2&quot;)
+                    .request();
+</code></pre>
+
+<p>其中<code>krouter/main/activity?test=32</code>为对应的路由路径，可以使用类似http请求的格式，在问号后紧接着的是请求参数，这些参数最终会自动包装在intent的extras中，也可以通过调用<code>with</code>开头的函数来配置请求参数。
+上面的代码执行后最终会启动一个Activity，准确来说是一个带有<code>@Route</code>注解的Activity，它长这样：</p>
+
+<pre><code class="language-kotlin">    @Route(path = &quot;krouter/main/activity&quot;)
+    public class MainActivity extends Activity {
+        ...
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            getIntent().getIntExtra(&quot;test&quot;, -1);//这里可以获取到请求参数test
+        }
+        ...
+    }
+</code></pre>
+
+<p>这是一个最基本的功能，怎么样，看起来还不错吧？跟大部分路由框架的调用方式差不多。现在主流的路由框架是怎么做到的呢？下面就看我一一道来。</p>
+
+<hr />
+
+<p>在使用<code>KRouter</code>的API前首先需要为一些类添加注解：</p>
+
+<pre><code class="language-kotlin">/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：用于标记可路由的组件
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Route(
+        /**
+         * Path of route
+         */
+        val path: String,
+        /**
+         * PathPrefix of route
+         */
+        val pathPrefix: String = &quot;&quot;,
+        /**
+         * PathPattern of route
+         */
+        val pathPattern: String = &quot;&quot;,
+        /**
+         * Name of route
+         */
+        val name: String = &quot;undefined&quot;,
+        /**
+         * Priority of route
+         */
+        val priority: Int = -1)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：用于拦截路由的拦截器
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Interceptor(
+        /**
+         * Priority of interceptor
+         */
+        val priority: Int = -1,
+        /**
+         * Name of interceptor
+         */
+        val name: String = &quot;DefaultInterceptor&quot;)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：属性注入
+ */
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Inject(
+        /**
+         * Name of property
+         */
+        val name: String = &quot;&quot;,
+        /**
+         * If true, app will be throws NPE when value is null
+         */
+        val isRequired: Boolean = false,
+        /**
+         * Description of the field
+         */
+        val desc: String = &quot;No desc.&quot;)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/2
+ * Time: 上午10:53
+ * Version: v1.0
+ * Description：Provider
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Provider(/**
+                           * Path of Provider
+                           */
+                          val value: String)
+</code></pre>
+
+<p>被注解的元素的信息最终被保存在对应的数据类中：</p>
+
+<pre><code class="language-kotlin">/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/4
+ * Time: 上午10:46
+ * Version: v1.0
+ * Description：Route元数据，用于存储被[com.github.richardwrq.krouter.annotation.Route]注解的类的信息
+ */
+data class RouteMetadata(
+        /**
+         * Type of Route
+         */
+        val routeType: RouteType = RouteType.UNKNOWN,
+        /**
+         * Priority of route
+         */
+        val priority: Int = -1,
+        /**
+         * Name of route
+         */
+        val name: String = &quot;undefine&quot;,
+        /**
+         * Path of route
+         */
+        val path: String = &quot;&quot;,
+        /**
+         * PathPrefix of route
+         */
+        val pathPrefix: String = &quot;&quot;,
+        /**
+         * PathPattern of route
+         */
+        val pathPattern: String = &quot;&quot;,
+        /**
+         * Class of route
+         */
+        val clazz: Class&lt;*&gt; = Any::class.java)
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/1/8
+ * Time: 下午10:46
+ * Version: v1.0
+ * Description：Interceptor元数据，用于存储被[com.github.richardwrq.krouter.annotation.Interceptor]注解的类的信息
+ */
+data class InterceptorMetaData(
+        /**
+         * Priority of Interceptor
+         */
+        val priority: Int = -1,
+        /**
+         * Name of Interceptor
+         */
+        val name: String = &quot;undefine&quot;,
+        /**
+         * Class desc of Interceptor
+         */
+        val clazz: Class&lt;*&gt; = Any::class.java)
+
+/**
+ * User: WuRuiqiang(263454190@qq.com)
+ * Date: 18/3/14
+ * Time: 上午1:28
+ * Version: v1.0
+ * Description：Injector元数据，用于存储被[com.github.richardwrq.krouter.annotation.Inject]注解的类的信息
+ */
+data class InjectorMetaData(
+        /**
+         * if true, throw NPE when the filed is null
+         */
+        val isRequired: Boolean = false,
+        /**
+         * key
+         */
+        val key: String = &quot;&quot;,
+        /**
+         * field name
+         */
+        val fieldName: String = &quot;&quot;)
+</code></pre>
+
+<p>其中被<strong>@Route</strong>注解的类是Android中的四大组件和Fragment或者它们的子类（目前尚不支持Broadcast以及ContentProvider），被<strong>@Route</strong>注解的对象目前有3种处理方式：</p>
+
+<ol>
+<li>若被注解的类是Activity的子类，那么最终的处理方式是startActivity；</li>
+<li>若被注解的类是Service的子类，最终的处理方式有两种，也就  是Android中启动Service的两种方式，使用哪种启动方式取决于是否调用了<code>withServiceConn</code>函数添加了ServiceConnection；<br /></li>
+<li>若被注解的类是Fragment的子类，最终的处理方式是调用无参构造函数构造出这个类的实例，并调用<code>setArguments(Bundle args)</code>将请求参数传入Fragment的bundle中，最后返回该实例</li>
+</ol>
+
+<p>被<strong>@Interceptor</strong>注解的类需实现<strong>IRouteInterceptor</strong>接口，这些类主要处理是否拦截路由的逻辑，比如某些需要登录才能启动的组件，就可以用到拦截器
+<strong>@Inject</strong>用于标记需要被注入的属性
+被<strong>@Provider</strong>注解的类最终可以调用<code>KRouter.getProvider(path: String)</code>方法获取该类的对象，如果该类实现了<strong>IProvider</strong>接口，那么<code>init(context: Context)</code>方法将被调用
+这些注解最终都不会被编译进class文件中，在编译时期这些注解会被收集起来最终交由不同的Annotation Processor去处理。</p>
+
+<p><strong>KRouter</strong>路由框架分为3个模块：
+- <strong>KRouter-api</strong>模块，作为SDK提供API供应用调用，调用<strong>KRouter-compiler</strong>模块生成的类中的方法加载路由表，处理路由请求
+- <strong>KRouter-compiler</strong>模块，各种注解对应的Processor的集合，编译期运行，负责收集路由组件，并生成kotlin代码
+- <strong>KRouter-gradle-plugin</strong>模块，自定义gradle插件，在项目构建时期添加相关依赖以及相关参数的配置</p>
+
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="http://upload-images.jianshu.io/upload_images/745509-d2b8cacc05798b3f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="各模块运行时期.png" class="lazyload"><figcaption class="image-caption">各模块运行时期.png</figcaption></figure></p>
+
+<p>#####KRouter-compiler
+在介绍该模块之前如果有同学不知道<strong>Annotation Processor</strong>的话建议先阅读 <a href="http://blog.csdn.net/hj7jay/article/details/52180023" rel="nofollow noreferrer" target="_blank">Annotation Processing-Tool详解</a>， <a href="http://blog.csdn.net/u013045971/article/details/53509237" rel="nofollow noreferrer" target="_blank">一小时搞明白注解处理器（Annotation Processor Tool）</a>这两篇文章，简单来说，APT就是<code>javac</code>提供的一个插件，它会搜集被指定注解所注解的元素（类、方法或者属性），最终将搜集到的这些交给注解处理器<strong>Annotation Processor</strong>进行处理，注解处理器通常会生成一些新的代码（推荐大名鼎鼎的square团队造的轮子<strong><a href="https://github.com/square/javapoet" rel="nofollow noreferrer" target="_blank">javapoet</a></strong>，这个开源库提供了非常友好的API让我们去生成Java代码），这些新生成的代码会与源码一起在同一个编译时期进行编译。
+但是<strong>Annotation Processor</strong>是<code>javac</code>提供的一个插件，也就是说它只认识Java代码，它压根不知道kotlin是什么，所以如果是用kotlin编写的代码文件最终将会被<code>javac</code>给忽略，所幸的是JetBrains在2015年就推出了<a href="https://blog.jetbrains.com/kotlin/2015/05/kapt-annotation-processing-for-kotlin/" rel="nofollow noreferrer" target="_blank">kapt</a>来解决这一问题。而且既然有javapoet，那square那么牛逼的团队肯定也会造一个生成kotlin代码的轮子吧，果不其然，在github一搜kotlinpoet，还真有，所以最终决定<strong>KRouter-compiler</strong>模块使用<strong>kapt</strong>+<strong><a href="https://github.com/square/kotlinpoet" rel="nofollow noreferrer" target="_blank">kotlinpoet</a></strong>来自动生成代码（kotlinpoet文档过于简单了，建议使用该库的同学通过它的测试用例或者参照Javapoet文档了解API的调用）。</p>
+
+<p>开头的例子中我们可以看到使用<strong>KRouter</strong>启动一个Activity只需要知道该Activity的路径即可，并不需要像Android原生的启动方式一样传入<code>Class&lt;*&gt;</code>或者<code>Class Name</code>，那么<strong>KRouter</strong>是怎么做到的呢？
+原理很简单，<strong>KRouter-compiler</strong>模块生了初始化<code>路由表</code>的代码，这些<code>路由表</code>内部其实就是一个个map，这些map以路径path作为key，数据类作为value（比如<strong>RouteMetadata</strong>），SDK内部会通过path获取到数据类，像开头启动Activity的例子中，SDK就通过path获取到一个<strong>RouteMetadata</strong>对象，在这个对象中取出被注解的类的<code>Class&lt;*&gt;</code>，有了这个<code>Class&lt;*&gt;</code>就可以完成启动Activity的操作。
+接下来说说<code>路由表</code>初始化代码生成之后是怎么被执行的，首先我定义了这样一些接口：</p>
+
+<pre><code class="language-kotlin">/**
+ * 加载路由
+ *
+ * @author: Wuruiqiang &lt;a href=&quot;mailto:263454190@qq.com&quot;&gt;Contact me.&lt;/a&gt;
+ * @version: v1.0
+ * @since: 18/1/4 下午6:38
+ */
+interface IRouteLoader {
+    fun loadInto(map: MutableMap&lt;String, RouteMetadata&gt;)
+}
+
+/**
+ * 加载拦截器
+ *
+ * @author: Wuruiqiang &lt;a href=&quot;mailto:263454190@qq.com&quot;&gt;Contact me.&lt;/a&gt;
+ * @version: v1.0
+ * @since: 18/1/5 上午9:12
+ */
+interface IInterceptorLoader {
+    fun loadInto(map: TreeMap&lt;Int, InterceptorMetaData&gt;)
+}
+
+/**
+ * 加载Provider
+ *
+ * @author: Wuruiqiang &lt;a href=&quot;mailto:263454190@qq.com&quot;&gt;Contact me.&lt;/a&gt;
+ * @version: v1.0
+ * @since: 18/1/5 上午9:12
+ */
+interface IProviderLoader {
+    fun loadInto(map: MutableMap&lt;String, Class&lt;*&gt;&gt;)
+}
+</code></pre>
+
+<p>以<strong>@Route</strong>注解为例，在<strong>KRouter-compiler</strong>中定义了一个继承自<strong>AbstractProcessor</strong>的类<strong>RouteProcessor</strong>，在编译期间编译器会收集<strong>@Route</strong>注解的元素的信息然后交由<strong>RouteProcessor</strong>处理，<strong>RouteProcessor</strong>会生成一个实现了<strong>IRouteLoader</strong>接口的类，在<code>loadInto</code>方法中把注解中的元数据与被注解的元素的部分信息存到<strong>RouteMetadata</strong>对象，然后将注解的路径path作为key，<strong>RouteMetadata</strong>对象作为value保存在一个map当中。生成的代码如下（项目build之后可以在<code>(module)/build/generated/source/kaptKotlin/(buildType)</code>目录下找到这些自动生成的类）：</p>
+
+<pre><code class="language-kotlin">/**
+ *    ***************************************************
+ *    * THIS CODE IS GENERATED BY KRouter, DO NOT EDIT. *
+ *    ***************************************************
+ */
+class KRouter_RouteLoader_app : IRouteLoader {
+    override fun loadInto(map: MutableMap&lt;String, RouteMetadata&gt;) {
+        map[&quot;krouter/sample/MainActivity&quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &quot;undefined&quot;, &quot;krouter/sample/MainActivity&quot;, &quot;&quot;, &quot;&quot;, MainActivity::class.java)
+        map[&quot;myfragment&quot;] = RouteMetadata(RouteType.FRAGMENT_V4, -1, &quot;undefined&quot;, &quot;myfragment&quot;, &quot;&quot;, &quot;&quot;, MainActivity.MyFragment::class.java)
+        map[&quot;krouter/sample/fragment1&quot;] = RouteMetadata(RouteType.FRAGMENT, -1, &quot;undefined&quot;, &quot;krouter/sample/fragment1&quot;, &quot;&quot;, &quot;&quot;, Fragment1::class.java)
+        map[&quot;krouter/sample/fragment2&quot;] = RouteMetadata(RouteType.FRAGMENT, -1, &quot;undefined&quot;, &quot;krouter/sample/fragment2&quot;, &quot;&quot;, &quot;&quot;, Fragment2::class.java)
+        map[&quot;krouter/sample/Main2Activity&quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &quot;undefined&quot;, &quot;krouter/sample/Main2Activity&quot;, &quot;&quot;, &quot;&quot;, Main2Activity::class.java)
+        map[&quot;krouter/sample/Main3Activity&quot;] = RouteMetadata(RouteType.ACTIVITY, -1, &quot;undefined&quot;, &quot;krouter/sample/Main3Activity&quot;, &quot;&quot;, &quot;&quot;, Main3Activity::class.java)
+    }
+}
+</code></pre>
+
+<p>代码生成之后，我们需要执行<code>loadInto</code>方法才算是把数据存入到map中去，我们可以通过<code>Class.forName(ClassName).newInstance()</code>获取该类实例，然后将其强制转换为<strong>IRouteLoader</strong>类型，接着调用<code>loadInto</code>方法传入map即可，现在问题来了，加载一个类我们需要知道这个类的路径和名称：<code>com.x.y.ClassA</code>，但是SDK并不知道<strong>KRouter-compiler</strong>会生成哪些类。
+为此我准备了两种解决方案：
+1. 类似<code>ARouter</code>的做法，扫描所有dex文件，找出实现了<code>ARouter</code>接口的类，然后将这些类的ClassName缓存至本地，下次应用启动时如果存在缓存且没有新增文件则读取缓存内容即可；
+2. 第二种是生成的类及其路径遵循一定的规则，比如由<strong>RouteProcessor</strong>生成的类路径规定为<code>com.github.richardwrq.krouter</code>，类名规定以“KRouter_RouteLoader_”作为开头然后拼接上Module名称（以Module名称作为后缀是避免在不同的Module下生成类名一样的类，导致编译时出现类重复定义异常），所以<strong>RouteProcessor</strong>名称为<code>app</code>的Module下生成的类就是<code>com.github.richardwrq.krouter.KRouter_RouteLoader_app</code>，在程序运行的时候，我们的SDK只需要获取项目中所有Module的名称，然后依次加载它们并执行<code>loadInto</code>方法即可。</p>
+
+<p>基于性能考虑我采取了第二种方案，这就需要解决一个问题，因为<strong>RouteProcessor</strong>是无法知道当前是处于哪个Module的，所以我们需要在Module的<code>build.gradle</code>做如下配置：</p>
+
+<pre><code class="language-groovy">kapt {
+    arguments {
+        arg(&quot;moduleName&quot;, project.getName())
+    }
+}
+</code></pre>
+
+<p>这样我们就配置了一个名为“moduleName”的参数，它的值就是当前Module的名称。这个参数可以在<strong>ProcessingEnvironment</strong>的<code>getOptions()</code>方法获取的map中取出，
+<strong>Route</strong>、<strong>Interceptor</strong>、<strong>Provider</strong>三者的处理流程大致相同，就不一一赘述了。
+在这里提一下关于依赖注入<strong>Inject</strong>的实现，关于如何对属性进行注入我想了两种解决方案：
+1. 第一种就是通过反射，了解反射的同学都知道可以通过反射获取类的运行时注解，并且通过反射API为类的属性进行赋值，但由于时反射，所以性能上有所损耗，但是可以无视属性的访问权限；
+2. 第二种是生成需要被注入的类的扩展方法，在扩展方法里面对接收者的属性进行赋值，性能更好，但是缺点是无法对private以及protected成员进行赋值。</p>
+
+<p>一开始是希望偷懒，就选择了第一种方案，但是问题来了，我知道Java的反射会有一些性能上的问题，但速度还不至于让用户感知明显，但是当我调用kotlin反射相关API时（最主要是获取Properties相关API），发现第一次调用花费的在4~5s 左右，之后调用速度是毫秒级的，我猜测是第一次调用加载了大量数据，然后将这些数据缓存起来了，但这4~5s的调用时间实在是恶心，所以最终还是决定采用方案2，有兴趣的同学可以查看<code>com/github/richardwrq/krouter/compiler/processor/RouteProcessor.kt</code>，生成的代码如下：</p>
+
+<pre><code class="language-kotlin">class com_github_richardwrq_krouter_activity_Main2Activity_KRouter_Injector : IInjector {
+    override fun inject(any: Any, extras: Bundle?) {
+        val bundle = getBundle(any, extras)//getBundle为自动生成的顶层方法
+        (any as Main2Activity).exInject(bundle)
+    }
+
+    private fun Main2Activity.exInject(bundle: Bundle) {
+        person = bundle.get(&quot;person&quot;) as? Person ?: KRouter.getProvider&lt;Person&gt;(&quot;person&quot;) ?: parseObject(bundle.getString(&quot;person&quot;), object : TypeToken&lt;Person&gt;() {}.getType()) ?: throw java.lang.NullPointerException(&quot;Field [person] must not be null in [Main2Activity]!&quot;)//parseObject为自动生成的顶层方法
+        provider = bundle.get(&quot;NoImplProvider&quot;) as? NoImplProvider ?: KRouter.getProvider&lt;NoImplProvider&gt;(&quot;NoImplProvider&quot;) ?: parseObject(bundle.getString(&quot;NoImplProvider&quot;), object : TypeToken&lt;NoImplProvider&gt;() {}.getType()) ?: throw java.lang.NullPointerException(&quot;Field [provider] must not be null in [Main2Activity]!&quot;)
+        myProvider = (KRouter.getProvider&lt;MyProvider&gt;(&quot;provider/myprovider&quot;)) ?: throw java.lang.NullPointerException(&quot;Field [myProvider] must not be null in [Main2Activity]!&quot;)
+    }
+}
+</code></pre>
+
+<p>生成的类路径与扩展方法接收者的类路径相同（解决Java包内访问权限问题），类名命名规则为扩展方法接收者类路径的“.“替换为”_“作为前缀，后缀为”_KRouter_Injector“，比如被被注入的类是<code>com.github.richardwrq.krouter.activity.Main2Activity</code>，那么自动生成的类为<code>com.github.richardwrq.krouter.activity.com_github_richardwrq_krouter_activity_Main2Activity_KRouter_Injector</code>
+#####KRouter-api
+该模块其实就是提供API给用户调用的SDK
+上面提到SDK需要执行<strong>KRouter-compiler</strong>模块类的代码才能真正完成路由表初始化的工作，由于最终编译器会将所有Module打包成一个apk，所以在APP运行时是不存在Module的概念的，但是按照解决方案2各Module生成的类会以Module名称作为后缀，因此必须想办法让SDK获取到项目中所有Module的名称，考虑再三，我采取的解决方案是从<code>assets</code>目录入手，在项目构建时期创建一个task，这个task会在Module的<code>src/main/assets</code>目录下生成一个“KRouter<em>ModuleName”的文件，在SDK初始化的时候只需要列出<code>assets</code>目录下所有&rdquo;KRouter</em>&ldquo;开头的文件并截取下划线“_”后的内容，即可得到一个包含所有Module名称的列表。
+下面给出SDK的类图，同学们可以对照源码参考
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="https://upload-images.jianshu.io/upload_images/745509-9e7ee15fad22c478.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="KRouter-api类图.png" class="lazyload"><figcaption class="image-caption">KRouter-api类图.png</figcaption></figure>
+#####KRouter-gradle-plugin
+完成上述两个模块后其实<code>KRouter</code>框架已经可以正常使用了，引用方式如下：
+在各Module的<code>build.gradle</code>加入下面的代码</p>
+
+<pre><code class="language-groovy">kapt {
+    arguments {
+        arg(&quot;moduleName&quot;, project.getName())
+    }
+}
+dependencies {
+    implementation 'com.github.richardwrq:krouter-api:x.y.z’
+    kapt 'com.github.richardwrq:krouter-compiler:x.y.z'
+}
+afterEvaluate {
+    //在assets目录创建文件的task
+    ...
+}
+</code></pre>
+
+<p>当项目中Module较多时，手动在每一个Module加入这些配置未免有些蠢。。所以我写了一个gradle插件用来自动完成这些配置工作，具体实现参考源码，逻辑非常简单，最后使用引用方式变成下面这样：
+在项目根目录<code>build.gradle</code>文件加入如下配置</p>
+
+<pre><code class="language-groovy">buildscript {
+
+    dependencies {
+        classpath &quot;org.jetbrains.kotlin:kotlin-gradle-plugin:x.y.z&quot;
+        classpath &quot;com.github.richardwrq:krouter-gradle-plugin:x.y.z&quot;
+    }
+}
+</code></pre>
+
+<p>然后在各Module的<code>build.gradle</code>文件加入如下配置</p>
+
+<pre><code class="language-groovy">apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: &quot;com.github.richardwrq.krouter&quot;
+</code></pre>
+
+<p>到这里<code>KRouter</code>路由框架就粗略的介绍了一遍，由于<code>kapt</code>仍在不断完善，所以使用过程中难免碰到一些坑或者本身API功能不够完善，下面就列举一些遇到的问题以及解决方法：</p>
+
+<ul>
+<li><a href="https://www.jianshu.com/p/f1ca4314f804" rel="nofollow noreferrer" target="_blank">注解处理器Annotation Processor中判断Java或kotlin类</a></li>
+<li><a href="https://www.jianshu.com/p/f41d21850cb4" rel="nofollow noreferrer" target="_blank">使用kotlinpoet生成kotlin代码数据类型不正确的问题</a></li>
+</ul>
+
+<h5 id="todolist">ToDoList</h5>
+
+<ul>
+<li>通过gradle插件修改<code>AndroidManifest.xml</code>文件，自动注册路由组件（Activity、Service）</li>
+<li>目前尚不支持动态加载的插件的路由注册，但有解决方案，hook classloader装载方法，在加载dex文件时扫描<code>KRouter</code>的路由组件</li>
+<li>支持多应用多进程环境下的页面路</li>
+</ul>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>RichardWu </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://richardwrq.github.io/2018/krouter/>https://richardwrq.github.io/2018/krouter/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+            <section>
+            <i class="iconfont icon-tag"></i>Tag(s): 
+            
+            <span class="tag"><a href="https://richardwrq.github.io/tags/android/">
+                    #Android</a></span>
+            
+            <span class="tag"><a href="https://richardwrq.github.io/tags/kotlin/">
+                    #Kotlin</a></span>
+            
+            <span class="tag"><a href="https://richardwrq.github.io/tags/%E8%B7%AF%E7%94%B1%E6%A1%86%E6%9E%B6/">
+                    #路由框架</a></span>
+            
+            </section>
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://richardwrq.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+         
+        
+        <a href="https://richardwrq.github.io/2018/judgejavaorkt/" class="next" rel="next" title="注解处理器Annotation Processor中判断Java或Kotlin类">注解处理器Annotation Processor中判断Java或Kotlin类&nbsp;<i class="iconfont icon-right"></i></a>
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2011 - 2018</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://richardwrq.github.io/">RichardWu</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+     <link href="//lib.baomitu.com/lightgallery/1.6.11/css/lightgallery.min.css" rel="stylesheet">  
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>
