@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="RichardWu">
+  
+  
+  
+  <link rel="prev" href="https://richardwrq.github.io/2018/ideaplugin/" />
+  
+  <link rel="canonical" href="https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           Android组件化之路 | RichardWu&#39;s Blog
+       
+  </title>
+  <meta name="title" content="Android组件化之路 | RichardWu&#39;s Blog">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https://richardwrq.github.io/"
+    },
+    "articleSection" : "posts",
+    "name" : "Android组件化之路",
+    "headline" : "Android组件化之路",
+    "description" : "Android组件化之路 首先先分清楚两个概念：
+模块化 模块化编程是将一个程序按照功能拆分成相互独立的若干模块，它强调将程序的功能分离成独立的、可替换的模块。每个模块内只有与其相关功能的内容。
+模块化编程和结构化编程与面向对象编程是密切相关的，它们的目的都是将大型软件程序划分成一个个更小的部分。模块化编程的粒度会更“粗”一些。在Java9中也在编译器层面提供了模块化的支持：Java Platform Module System 。
+组件是一个类似的概念，但通常指更高的级别；组件是整个系统的一部分，而模块是单个程序的一部分。“模块”一词因语言而有很大差异；在Python中，它非常小，每个文件都是一个模块，而在Java 9中，它是非常大的，其中模块是包的集合，包又是文件的集合。
+在面向对象编程中，通常使用接口作为模块间通信的桥梁，也就是基于接口的编程。
+组件化 组件化开发是软件工程的一个分支，它强调对给定软件系统中广泛可用的功能进行分割。基于可重用的目的将一个大的软件系统拆分成多个独立的组件，减少系统耦合度。
+组件化开发中认为组件作为系统的一部分，是可独立运行的服务，维基百科中举了一个例子：在web服务中，有一种面向服务的架构设计&ndash;service-oriented architectures (SOA)，这种架构设计从业务角度出发，利用企业现有的各种软件体系，重新整合并构建起一套新的软件架构。这套软件架构可以随着业务的变化，随时灵活地结合现有服务，组成一个新的软件。增加应用系统的灵活性。
+组件可以产生或者消费事件，也可以应用于事件驱动架构。
+ 组件之间通过接口进行通信 组件是可替换的，如果后续组件满足初始组件的需求（通过接口表示），则组件可以替换另一个组件（在设计时或运行时），因此可以用更新的版本或替代的版本替换组件，而不会破坏系统的运行。 一个判断可替换组件的经验法则是：如果组件B至少提供了A提供的组件，并且使用的组件不超过A使用的组件，那么组件B可以立即替换组件A 当组件直接与用户交互时，应该考虑基于组件的可用性测试。 组件需要是完全文档化、全面测试、具有全面的输入效度检查的。  模块化 or 组件化 不管是模块化还是组件化，都不是一个新的设计思想，它们最早都是在20世纪60年代就已经被提出了，但是早期的移动应用由于相对简单，本身逻辑功能也不多，所以在移动端的应用反而没那么广泛。（虽然Java最开始的模块化是针对在移动和嵌入式设备上的应用设计的）。
+从上面的概述来看其实组件化跟模块化没有明显的区别；一个登录功能可以是一个模块也可以是一个组件，一个日期选择控件可以是一个模块，也可以是一个组件，因为不管是模块化还是组件化，它们都有一个共同的目标：将一个大的软件系统细化成一个个模块或者组件，都是为了重用和解耦。因此没有一个明确的界线去区分它们。
+网上很多文章对于组件和模块的定义也是不尽相同的，一些人认为组件的粒度更细，它只是具备单一功能与业务无关的组件，比如一个日历选择控件就认为是一个组件。而模块他们认为就是业务模块，顾名思义，就是按业务划分而成的模块。而另一部分人则相反。
+在维基百科对模块化的解释中有这么一句：
+ A component is a similar concept, but typically refers to a higher level; a component is a piece of a whole system, while a module is a piece of an individual program
+ 也就是认为组件粒度较模块要更大，所以本文对组件和模块做出以下定义：
+ 组件：侧重于业务，可编译成单独的app，一般只负责单一业务，具备自身的生命周期（通常包含Android四大组件的一个或多个，所以称之为组件也更加贴切） 模块：侧重于功能，与业务无关，比如自定义控件、网络请求库、图片加载库等  而从Android Studio推出之后，我们在开发项目时也会有意识的将一些可重用的代码逻辑抽离成一个个的Module，这也就是模块化开发的雏形。当然，组件化开发也不是就尽善尽美的，下面列举了它的一些优缺点：",
+    "inLanguage" : "zh",
+    "author" : "RichardWu",
+    "creator" : "RichardWu",
+    "publisher": "RichardWu",
+    "accountablePerson" : "RichardWu",
+    "copyrightHolder" : "RichardWu",
+    "copyrightYear" : "2018",
+    "datePublished": "2018-12-21 14:20:24 &#43;0800 CST",
+    "dateModified" : "2018-12-21 14:20:24 &#43;0800 CST",
+    "url" : "https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/",
+    "wordCount" : "191",
+    "keywords" : [  "RichardWu&#39;s Blog"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">Android组件化之路</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://richardwrq.github.io/" rel="author">RichardWu</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2018-12-21 itemprop="datePublished">December 21, 2018</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://richardwrq.github.io/categories/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/"> 架构设计 </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h2 id="android组件化之路">Android组件化之路</h2>
+
+<p>首先先分清楚两个概念：</p>
+
+<h3 id="模块化">模块化</h3>
+
+<p><a href="https://en.wikipedia.org/wiki/Modular_programming" rel="nofollow noreferrer" target="_blank">模块化编程</a>是将一个程序按照功能拆分成相互独立的若干模块，它强调将程序的<strong>功能</strong>分离成独立的、可替换的模块。每个模块内只有与其相关功能的内容。</p>
+
+<p>模块化编程和结构化编程与面向对象编程是密切相关的，它们的目的都是将大型软件程序划分成一个个更小的部分。模块化编程的粒度会更“粗”一些。在Java9中也在编译器层面提供了模块化的支持：<a href="https://en.wikipedia.org/wiki/Java_Platform_Module_System" rel="nofollow noreferrer" target="_blank">Java Platform Module System</a> 。</p>
+
+<p>组件是一个类似的概念，但通常指更高的级别；组件是整个系统的一部分，而模块是单个程序的一部分。“模块”一词因语言而有很大差异；在Python中，它非常小，每个文件都是一个模块，而在Java 9中，它是非常大的，其中模块是包的集合，包又是文件的集合。</p>
+
+<p>在面向对象编程中，通常使用接口作为模块间通信的桥梁，也就是基于接口的编程。</p>
+
+<h3 id="组件化">组件化</h3>
+
+<p><a href="https://en.wikipedia.org/wiki/Component-based_software_engineering" rel="nofollow noreferrer" target="_blank">组件化开发</a>是软件工程的一个分支，它强调对给定软件系统中广泛可用的功能进行分割。基于可重用的目的将一个大的软件系统拆分成多个独立的组件，减少系统耦合度。</p>
+
+<p>组件化开发中认为组件作为系统的一部分，是可独立运行的服务，维基百科中举了一个例子：在web服务中，有一种面向服务的架构设计&ndash;<a href="https://en.wikipedia.org/wiki/Service-oriented_architecture" rel="nofollow noreferrer" target="_blank">service-oriented architectures</a> (SOA)，这种架构设计从业务角度出发，利用企业现有的各种软件体系，重新整合并构建起一套新的软件架构。这套软件架构可以随着业务的变化，随时灵活地结合现有服务，组成一个新的软件。增加应用系统的灵活性。</p>
+
+<p>组件可以产生或者消费事件，也可以应用于事件驱动架构。</p>
+
+<ul>
+<li>组件之间通过接口进行通信</li>
+<li>组件是可替换的，如果后续组件满足初始组件的需求（通过接口表示），则组件可以替换另一个组件（在设计时或运行时），因此可以用更新的版本或替代的版本替换组件，而不会破坏系统的运行。</li>
+<li>一个判断可替换组件的经验法则是：如果组件B至少提供了A提供的组件，并且使用的组件不超过A使用的组件，那么组件B可以立即替换组件A</li>
+<li>当组件直接与用户交互时，应该考虑基于组件的可用性测试。</li>
+<li>组件需要是完全文档化、全面测试、具有全面的输入效度检查的。</li>
+</ul>
+
+<h3 id="模块化-or-组件化">模块化 or 组件化</h3>
+
+<p>不管是模块化还是组件化，都不是一个新的设计思想，它们最早都是在20世纪60年代就已经被提出了，但是早期的移动应用由于相对简单，本身逻辑功能也不多，所以在移动端的应用反而没那么广泛。（虽然Java最开始的模块化是针对在移动和嵌入式设备上的应用设计的）。</p>
+
+<p>从上面的概述来看其实组件化跟模块化没有明显的区别；一个登录功能可以是一个模块也可以是一个组件，一个日期选择控件可以是一个模块，也可以是一个组件，因为不管是模块化还是组件化，它们都有一个共同的目标：将一个大的软件系统细化成一个个模块或者组件，都是为了重用和解耦。因此没有一个明确的界线去区分它们。</p>
+
+<p>网上很多文章对于<strong>组件</strong>和<strong>模块</strong>的定义也是不尽相同的，一些人认为组件的粒度更细，它只是具备单一功能与业务无关的组件，比如一个日历选择控件就认为是一个<strong>组件</strong>。而<strong>模块</strong>他们认为就是<strong>业务模块</strong>，顾名思义，就是按业务划分而成的模块。而另一部分人则相反。</p>
+
+<p>在维基百科对模块化的解释中有这么一句：</p>
+
+<blockquote>
+<p>A component is a similar concept, but typically refers to a higher level; a component is a piece of a whole system, while a module is a piece of an individual program</p>
+</blockquote>
+
+<p>也就是认为<strong>组件</strong>粒度较<strong>模块</strong>要更大，所以本文对<strong>组件</strong>和<strong>模块</strong>做出以下定义：</p>
+
+<ul>
+<li><strong>组件</strong>：侧重于业务，可编译成单独的app，一般只负责单一业务，具备自身的生命周期（通常包含Android四大组件的一个或多个，所以称之为组件也更加贴切）</li>
+<li><strong>模块</strong>：侧重于功能，与业务无关，比如自定义控件、网络请求库、图片加载库等</li>
+</ul>
+
+<p>而从Android Studio推出之后，我们在开发项目时也会有意识的将一些可重用的代码逻辑抽离成一个个的<strong>Module</strong>，这也就是模块化开发的雏形。当然，组件化开发也不是就尽善尽美的，下面列举了它的一些优缺点：</p>
+
+<p><strong>优点：</strong>一个复杂的系统可以由一个个组件集合而成，甚至于不同的组合可以构建出不同的系统。每个组件有独立的版本，可独立编译、打包，大大提高了系统的灵活性以及开发人员的开发效率。应用的更新可以精细到组件，组件的升级替换不会影响到其它组件，也不会受其它组件的限制。</p>
+
+<p>基于组件化架构设计的应用比传统的“单片”设计可重用性高得多，因为这些组件可以在其他项目中重用，而且开发人员无需了解整个应用，可以只专注于分配给他们的较小的任务，提高开发效率。</p>
+
+<p><strong>缺点：</strong>组件化的实施对开发人员和团队管理人员提出了更高水平的要求，项目管理难度更大。组件间如何进行通信也是需要慎重考虑的。万事开头难，在对一个项目进行组件化分解时就好像庖丁解牛一般，你需要了解项目的<strong>“肌理筋骨”</strong>，才知道从何处下<strong>“刀”</strong>，才能更轻易的去分解项目，这就要求架构师对于项目的整体需求了如指掌。</p>
+
+<hr />
+
+<p>下面就来谈谈我的<strong>组件化</strong>之路。。。</p>
+
+<p>首先我负责的项目类似于一个远程控制应用，它与服务器建立Socket连接，接收服务器发送过来的指令，针对这些指令对当前Android设备执行关机、安装应用等操作。应用本身也会收集一些设备信息如应用运行日志，使用时长等，在某个指定的时间点上传至服务器。理想的组件间依赖关系是这样的：
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/组件化之路/组件化架构.jpg" alt="组件化架构" class="lazyload"><figcaption class="image-caption">组件化架构</figcaption></figure></p>
+
+<p>其中基础模块不能脱离主工程独立运行，组件之间不能直接依赖，组件间通信方式可以是接口也可以是事件总线。团队中的开发人员只需要关注自身负责的组件（在开发模式下各组件会转化为可单独运行的App，说白了就是在<code>build.gradle</code>文件中将<code>apply plugin: 'com.android.library'</code>改为<code>apply plugin: 'com.android.application'</code>，网上有很多相关资料，在此就不赘述了）。</p>
+
+<p>现在来了个开发需求需要改动组件<code>Component1</code>内部的逻辑，团队中的小A是负责该组件的开发人员，在接到需求后，小A啪啪啪一顿猛如虎的操作完成需求后，对该组件进行单元测试，检查组件输入输出，测试通过后提交代码，审核通过后构建平台构建、打包、发布，整个过程完全没有“惊动”其他组件，Perfect！</p>
+
+<p>然而现实是残酷的。。</p>
+
+<p>由于组件间不可能完全不通信，所以现实情况组件之间的依赖关系有可能是这样的：</p>
+
+<p><figure><img src="/images/ring.svg" data-sizes="auto" data-src="/组件化之路/现实情况依赖关系.jpg" alt="现实情况下的依赖关系" class="lazyload"><figcaption class="image-caption">现实情况下的依赖关系</figcaption></figure></p>
+
+<p><code>对比上图，组件之间显得更加“亲密无间”了，而且这还不是糟糕的情况，当组件越来越多，各种相互依赖，循坏依赖的问题会让你痛不欲生。</code></p>
+
+<p>因为组件之间不可避免的存在需要通信的情况，比如 <code>Component1</code>需要调用<code>Component2</code>的方法一般情况下我们都是直接通过类名或对象引用的方式去调用相应的方法。但是这种通信方式正是导致组件之间高度耦合的罪魁祸首，所以必须杜绝这种通信方式。</p>
+
+<p>那么问题来了，怎么做到既能让组件间通信又高度解耦呢？这就需要用到文章开头提到的<strong>面向接口编程</strong>思想和<strong>依赖注入</strong>（或者叫依赖查找）技术。举个🌰：</p>
+
+<p>组件A中的<code>Foo1</code>类依赖组件B<code>Foo2</code>类中的<code>bar</code>方法，一种比较low的实现方式是：</p>
+
+<pre><code class="language-java">//ComponentA
+class Foo1 {
+    private Foo2 mFoo2;
+    public void main() {
+        mFoo2 = new Foo2();
+        mFoo2.bar();
+    }
+}
+
+//ComponentB
+class Foo2 {
+    public void bar() {
+        //nop
+    }
+}
+</code></pre>
+
+<p>这种实现方式违反了<a href="https://baike.baidu.com/item/%E4%BE%9D%E8%B5%96%E5%80%92%E7%BD%AE%E5%8E%9F%E5%88%99/6189149" rel="nofollow noreferrer" target="_blank">控制反转</a>设计原则，耦合度高，假如这时需求变更了，需要使用组件C的<code>Foo3</code>类中的<code>bar()</code>方法去替换原来的实现，那这下乐子就大了。</p>
+
+<p>而通过面向接口编程以及<strong>依赖注入</strong>技术我们能很好的遵循控制反转设计原则：</p>
+
+<pre><code class="language-java">//Common Component
+interface IBar {
+    void bar()
+}
+
+//ComponentA
+class Foo1 {
+    private IBar mBar;
+    
+    public void main() {
+        if (mBar != null) {
+            mBar.bar();
+        }
+    }
+    
+    public void setBar(IBar bar) {
+        mBar = bar;
+    }
+}
+
+//ComponentB
+class Foo2 implements IBar {
+    
+    @Override
+    public void bar() {
+        //nop
+    }
+}
+
+//ComponentC
+class Foo3 implements IBar {
+    
+    @Override
+    public void bar() {
+        //nop
+    }
+}
+</code></pre>
+
+<p>这就是经典的实现了控制反转的示例代码，<code>Foo1</code>类只知道自己需要一个实现了<code>IBar</code>接口的实例，然后调用接口的<code>bar()</code>方法，至于是谁去实现的这个接口，不好意思，它压根不关心。</p>
+
+<p>虽然你<code>Foo1</code>类是舒服了，把依赖关系交给外部去解决了，但是总要有人去负责这部分的工作吧。这时候依赖注入容器（IOC容器）就登场了，如果对web开发有所了解的同学肯定不会感到陌生，<code>Spring</code>就是一个IOC容器，这个容器把依赖查找，类实例化（其实就是根据类的路径名称通过反射进行实例化）这些脏活累活揽在身上，这样既实现了控制反转又极大提高了应用的灵活性和可维护性。</p>
+
+<p>正因为依赖注入能有效地降低代码之间的耦合度，所以基于依赖注入实现的<strong>组件化框架</strong>（路由框架）也就应运而生了，目前主流的Android组件化框架有<a href="https://github.com/alibaba/ARouter" rel="nofollow noreferrer" target="_blank">ARouter</a>、<a href="https://github.com/luckybilly/CC" rel="nofollow noreferrer" target="_blank">CC</a>、<a href="https://github.com/luojilab/DDComponentForAndroid" rel="nofollow noreferrer" target="_blank">DDComponentForAndroid</a>、<a href="https://github.com/mzule/ActivityRouter" rel="nofollow noreferrer" target="_blank">ActivityRouter</a>等等，我自己也使用<code>Kotlin</code>基于<code>kapt</code>技术实现了一个路由框架<a href="https://github.com/richardwrq/KRouter" rel="nofollow noreferrer" target="_blank">KRouter</a>。</p>
+
+<p>虽然相关的框架有很多，但是它们实现原理不外乎两种：</p>
+
+<ul>
+<li>一种是将分布在各个组件的类按照一定的规则在内部生成映射表，这个映射表的数据结构通常是一个Map，Key是一个字符串，Value是一个类或者是类的路径名称（用于通过反射进行类的实例化）。通俗来说就是类的查找，这种实现方式要求调用方和被调用方都持有接口类，通常这些共同持有的接口类会被定义在一个<code>Common</code>基础模块中，而且在运行时这些相互通信的组件必须打包到同一个APK中。这种实现方式导致无法真正实现代码隔离（需要通信的两个组件仍然是存在依赖关系的），基于这种原理实现的组件化架构“自约束能力”很弱，因为无法约束开发人员通过直接引用的方式进行通信的行为，虽然一开始设计人员想的很美好，但是开发人员在实现时做出来的产品却不是那样，因为“自约束能力”弱的架构设计是通过“编码规范”、“测试驱动”甚至是“人员熟练度”来保证开发人员实现的代码符合设计人员的设计初衷，而且这种架构也无法保证后续接手维护项目的开发人员能够贯彻原本的设计思想，随着时间推移，项目往越来越糟糕的方向演进（解决这个问题最好的方案就是从编译器层面进行约束，也就是把问题拦截在编码阶段，然而Java9才支持模块化开发，Android目前还处于支持部分Java8的特性的阶段，路还很长）。</li>
+<li>另一种方案是基于事件总线的方式实现组件之间的通信，不再是面向接口编程，而是面向通信协议编程，可以理解为组件间的调用类似http请求。这些框架会在内部建立跨进程通信的连接（也就是事件总线），这条事件总线负责分发路由请求以及返回执行结果。这种实现方式的好处是真正可以实现代码隔离，组件可以运行在独立的进程中，但是只支持基本类型参数的转发。实现跨进程通信有很多方案，比如Android原生的四大组件、Socket、FileObserver、MemoryFile、基于AIDL的Messager等等，使用Android原生的好处是安全性方面的工作由Android帮我们完成了，而使用Socket则需要自己实现加密Socket。</li>
+</ul>
+
+<p>第一种方案适合小型的项目，因为这些项目通常都是单进程的，虽然这样设计的架构“自约束能力”弱，但是目前大多数Android项目团队开发人数也不会太多，所以管理难度较小，而第二种实现方案则更适合跨进程组件化的项目（组件一般运行在独立的进程中甚至一个组件就是一个APP）。</p>
+
+<p>在我看来Android的组件化是存在3个阶段的，第一个是从单工程项目过度到多模块的阶段；第二个是从多模块过度到多组件的阶段；第三个就是多组件独立进程的阶段。而目前大多数应用其实都是在第二个阶段或者介于第二和第三个阶段之间，所以对于这样的项目，选择一个既支持类查找方式，又支持事件总线的组件化框架是最合适的（这也是一开始设计<strong>KRouter</strong>想要达到的效果，虽然目前暂时不支持跨进程组件。。。）</p>
+
+<p>在项目实施组件化过程中，其实真正耗费时间、精力的不是编码，而是一开始组件的划分以及组件单元测试的代码的编写。有可能因为一开始对业务的不熟悉，导致后期开发时发现组件划分的不够准确，需要加以调整；或者是对接口抽象的不够好，导致维护时频繁修改接口；还有可能在编写单元测试时觉得枯燥乏味而选择放弃。我们不能因为遇到这些困难就半途而废，或者是质疑自己的架构设计能力，没有哪一个架构设计是放之四海皆准的，有可能一个项目的架构设计放在另一个项目中就显得不那么合适了。所以好的架构设计还需要设计人员“因地制宜”的对一个比较通用的架构骨架进行查漏补缺，最后使其与实际项目更加契合。</p>
+
+<p>祝大家都能成为一个优秀的架构设计师。</p>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>RichardWu </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/>https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://richardwrq.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://richardwrq.github.io/2018/ideaplugin/" class="prev" rel="prev" title="IntelliJ IDEA/Android Studio插件开发入门指南"><i class="iconfont icon-left"></i>&nbsp;IntelliJ IDEA/Android Studio插件开发入门指南</a>
+         
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2011 - 2018</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://richardwrq.github.io/">RichardWu</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+     <link href="//lib.baomitu.com/lightgallery/1.6.11/css/lightgallery.min.css" rel="stylesheet">  
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>架构设计 on RichardWu&#39;s Blog</title>
+    <link>https://richardwrq.github.io/categories/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/</link>
+    <description>Recent content in 架构设计 on RichardWu&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 21 Dec 2018 14:20:24 +0800</lastBuildDate>
+    
+	<atom:link href="https://richardwrq.github.io/categories/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Android组件化之路</title>
+      <link>https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/</link>
+      <pubDate>Fri, 21 Dec 2018 14:20:24 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/</guid>
+      <description>Android组件化之路 首先先分清楚两个概念：
+模块化 模块化编程是将一个程序按照功能拆分成相互独立的若干模块，它强调将程序的功能分离成独立的、可替换的模块。每个模块内只有与其相关功能的内容。
+模块化编程和结构化编程与面向对象编程是密切相关的，它们的目的都是将大型软件程序划分成一个个更小的部分。模块化编程的粒度会更“粗”一些。在Java9中也在编译器层面提供了模块化的支持：Java Platform Module System 。
+组件是一个类似的概念，但通常指更高的级别；组件是整个系统的一部分，而模块是单个程序的一部分。“模块”一词因语言而有很大差异；在Python中，它非常小，每个文件都是一个模块，而在Java 9中，它是非常大的，其中模块是包的集合，包又是文件的集合。
+在面向对象编程中，通常使用接口作为模块间通信的桥梁，也就是基于接口的编程。
+组件化 组件化开发是软件工程的一个分支，它强调对给定软件系统中广泛可用的功能进行分割。基于可重用的目的将一个大的软件系统拆分成多个独立的组件，减少系统耦合度。
+组件化开发中认为组件作为系统的一部分，是可独立运行的服务，维基百科中举了一个例子：在web服务中，有一种面向服务的架构设计&amp;ndash;service-oriented architectures (SOA)，这种架构设计从业务角度出发，利用企业现有的各种软件体系，重新整合并构建起一套新的软件架构。这套软件架构可以随着业务的变化，随时灵活地结合现有服务，组成一个新的软件。增加应用系统的灵活性。
+组件可以产生或者消费事件，也可以应用于事件驱动架构。
+ 组件之间通过接口进行通信 组件是可替换的，如果后续组件满足初始组件的需求（通过接口表示），则组件可以替换另一个组件（在设计时或运行时），因此可以用更新的版本或替代的版本替换组件，而不会破坏系统的运行。 一个判断可替换组件的经验法则是：如果组件B至少提供了A提供的组件，并且使用的组件不超过A使用的组件，那么组件B可以立即替换组件A 当组件直接与用户交互时，应该考虑基于组件的可用性测试。 组件需要是完全文档化、全面测试、具有全面的输入效度检查的。  模块化 or 组件化 不管是模块化还是组件化，都不是一个新的设计思想，它们最早都是在20世纪60年代就已经被提出了，但是早期的移动应用由于相对简单，本身逻辑功能也不多，所以在移动端的应用反而没那么广泛。（虽然Java最开始的模块化是针对在移动和嵌入式设备上的应用设计的）。
+从上面的概述来看其实组件化跟模块化没有明显的区别；一个登录功能可以是一个模块也可以是一个组件，一个日期选择控件可以是一个模块，也可以是一个组件，因为不管是模块化还是组件化，它们都有一个共同的目标：将一个大的软件系统细化成一个个模块或者组件，都是为了重用和解耦。因此没有一个明确的界线去区分它们。
+网上很多文章对于组件和模块的定义也是不尽相同的，一些人认为组件的粒度更细，它只是具备单一功能与业务无关的组件，比如一个日历选择控件就认为是一个组件。而模块他们认为就是业务模块，顾名思义，就是按业务划分而成的模块。而另一部分人则相反。
+在维基百科对模块化的解释中有这么一句：
+ A component is a similar concept, but typically refers to a higher level; a component is a piece of a whole system, while a module is a piece of an individual program
+ 也就是认为组件粒度较模块要更大，所以本文对组件和模块做出以下定义：
+ 组件：侧重于业务，可编译成单独的app，一般只负责单一业务，具备自身的生命周期（通常包含Android四大组件的一个或多个，所以称之为组件也更加贴切） 模块：侧重于功能，与业务无关，比如自定义控件、网络请求库、图片加载库等  而从Android Studio推出之后，我们在开发项目时也会有意识的将一些可重用的代码逻辑抽离成一个个的Module，这也就是模块化开发的雏形。当然，组件化开发也不是就尽善尽美的，下面列举了它的一些优缺点：</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -6,8 +6,183 @@
     <description>Recent content in RichardWu&#39;s Blog on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
-    <lastBuildDate>Wed, 21 Nov 2018 15:13:22 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 21 Dec 2018 14:20:24 +0800</lastBuildDate>
     <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Android组件化之路</title>
+      <link>https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/</link>
+      <pubDate>Fri, 21 Dec 2018 14:20:24 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/</guid>
+      <description>
+
+&lt;h2 id=&#34;android组件化之路&#34;&gt;Android组件化之路&lt;/h2&gt;
+
+&lt;p&gt;首先先分清楚两个概念：&lt;/p&gt;
+
+&lt;h3 id=&#34;模块化&#34;&gt;模块化&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Modular_programming&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;模块化编程&lt;/a&gt;是将一个程序按照功能拆分成相互独立的若干模块，它强调将程序的&lt;strong&gt;功能&lt;/strong&gt;分离成独立的、可替换的模块。每个模块内只有与其相关功能的内容。&lt;/p&gt;
+
+&lt;p&gt;模块化编程和结构化编程与面向对象编程是密切相关的，它们的目的都是将大型软件程序划分成一个个更小的部分。模块化编程的粒度会更“粗”一些。在Java9中也在编译器层面提供了模块化的支持：&lt;a href=&#34;https://en.wikipedia.org/wiki/Java_Platform_Module_System&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;Java Platform Module System&lt;/a&gt; 。&lt;/p&gt;
+
+&lt;p&gt;组件是一个类似的概念，但通常指更高的级别；组件是整个系统的一部分，而模块是单个程序的一部分。“模块”一词因语言而有很大差异；在Python中，它非常小，每个文件都是一个模块，而在Java 9中，它是非常大的，其中模块是包的集合，包又是文件的集合。&lt;/p&gt;
+
+&lt;p&gt;在面向对象编程中，通常使用接口作为模块间通信的桥梁，也就是基于接口的编程。&lt;/p&gt;
+
+&lt;h3 id=&#34;组件化&#34;&gt;组件化&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Component-based_software_engineering&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;组件化开发&lt;/a&gt;是软件工程的一个分支，它强调对给定软件系统中广泛可用的功能进行分割。基于可重用的目的将一个大的软件系统拆分成多个独立的组件，减少系统耦合度。&lt;/p&gt;
+
+&lt;p&gt;组件化开发中认为组件作为系统的一部分，是可独立运行的服务，维基百科中举了一个例子：在web服务中，有一种面向服务的架构设计&amp;ndash;&lt;a href=&#34;https://en.wikipedia.org/wiki/Service-oriented_architecture&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;service-oriented architectures&lt;/a&gt; (SOA)，这种架构设计从业务角度出发，利用企业现有的各种软件体系，重新整合并构建起一套新的软件架构。这套软件架构可以随着业务的变化，随时灵活地结合现有服务，组成一个新的软件。增加应用系统的灵活性。&lt;/p&gt;
+
+&lt;p&gt;组件可以产生或者消费事件，也可以应用于事件驱动架构。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;组件之间通过接口进行通信&lt;/li&gt;
+&lt;li&gt;组件是可替换的，如果后续组件满足初始组件的需求（通过接口表示），则组件可以替换另一个组件（在设计时或运行时），因此可以用更新的版本或替代的版本替换组件，而不会破坏系统的运行。&lt;/li&gt;
+&lt;li&gt;一个判断可替换组件的经验法则是：如果组件B至少提供了A提供的组件，并且使用的组件不超过A使用的组件，那么组件B可以立即替换组件A&lt;/li&gt;
+&lt;li&gt;当组件直接与用户交互时，应该考虑基于组件的可用性测试。&lt;/li&gt;
+&lt;li&gt;组件需要是完全文档化、全面测试、具有全面的输入效度检查的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;模块化-or-组件化&#34;&gt;模块化 or 组件化&lt;/h3&gt;
+
+&lt;p&gt;不管是模块化还是组件化，都不是一个新的设计思想，它们最早都是在20世纪60年代就已经被提出了，但是早期的移动应用由于相对简单，本身逻辑功能也不多，所以在移动端的应用反而没那么广泛。（虽然Java最开始的模块化是针对在移动和嵌入式设备上的应用设计的）。&lt;/p&gt;
+
+&lt;p&gt;从上面的概述来看其实组件化跟模块化没有明显的区别；一个登录功能可以是一个模块也可以是一个组件，一个日期选择控件可以是一个模块，也可以是一个组件，因为不管是模块化还是组件化，它们都有一个共同的目标：将一个大的软件系统细化成一个个模块或者组件，都是为了重用和解耦。因此没有一个明确的界线去区分它们。&lt;/p&gt;
+
+&lt;p&gt;网上很多文章对于&lt;strong&gt;组件&lt;/strong&gt;和&lt;strong&gt;模块&lt;/strong&gt;的定义也是不尽相同的，一些人认为组件的粒度更细，它只是具备单一功能与业务无关的组件，比如一个日历选择控件就认为是一个&lt;strong&gt;组件&lt;/strong&gt;。而&lt;strong&gt;模块&lt;/strong&gt;他们认为就是&lt;strong&gt;业务模块&lt;/strong&gt;，顾名思义，就是按业务划分而成的模块。而另一部分人则相反。&lt;/p&gt;
+
+&lt;p&gt;在维基百科对模块化的解释中有这么一句：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A component is a similar concept, but typically refers to a higher level; a component is a piece of a whole system, while a module is a piece of an individual program&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;也就是认为&lt;strong&gt;组件&lt;/strong&gt;粒度较&lt;strong&gt;模块&lt;/strong&gt;要更大，所以本文对&lt;strong&gt;组件&lt;/strong&gt;和&lt;strong&gt;模块&lt;/strong&gt;做出以下定义：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;组件&lt;/strong&gt;：侧重于业务，可编译成单独的app，一般只负责单一业务，具备自身的生命周期（通常包含Android四大组件的一个或多个，所以称之为组件也更加贴切）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;模块&lt;/strong&gt;：侧重于功能，与业务无关，比如自定义控件、网络请求库、图片加载库等&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;而从Android Studio推出之后，我们在开发项目时也会有意识的将一些可重用的代码逻辑抽离成一个个的&lt;strong&gt;Module&lt;/strong&gt;，这也就是模块化开发的雏形。当然，组件化开发也不是就尽善尽美的，下面列举了它的一些优缺点：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;优点：&lt;/strong&gt;一个复杂的系统可以由一个个组件集合而成，甚至于不同的组合可以构建出不同的系统。每个组件有独立的版本，可独立编译、打包，大大提高了系统的灵活性以及开发人员的开发效率。应用的更新可以精细到组件，组件的升级替换不会影响到其它组件，也不会受其它组件的限制。&lt;/p&gt;
+
+&lt;p&gt;基于组件化架构设计的应用比传统的“单片”设计可重用性高得多，因为这些组件可以在其他项目中重用，而且开发人员无需了解整个应用，可以只专注于分配给他们的较小的任务，提高开发效率。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;组件化的实施对开发人员和团队管理人员提出了更高水平的要求，项目管理难度更大。组件间如何进行通信也是需要慎重考虑的。万事开头难，在对一个项目进行组件化分解时就好像庖丁解牛一般，你需要了解项目的&lt;strong&gt;“肌理筋骨”&lt;/strong&gt;，才知道从何处下&lt;strong&gt;“刀”&lt;/strong&gt;，才能更轻易的去分解项目，这就要求架构师对于项目的整体需求了如指掌。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;下面就来谈谈我的&lt;strong&gt;组件化&lt;/strong&gt;之路。。。&lt;/p&gt;
+
+&lt;p&gt;首先我负责的项目类似于一个远程控制应用，它与服务器建立Socket连接，接收服务器发送过来的指令，针对这些指令对当前Android设备执行关机、安装应用等操作。应用本身也会收集一些设备信息如应用运行日志，使用时长等，在某个指定的时间点上传至服务器。理想的组件间依赖关系是这样的：
+&lt;img src=&#34;https://richardwrq.github.io/组件化之路/组件化架构.jpg&#34; alt=&#34;组件化架构&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;其中基础模块不能脱离主工程独立运行，组件之间不能直接依赖，组件间通信方式可以是接口也可以是事件总线。团队中的开发人员只需要关注自身负责的组件（在开发模式下各组件会转化为可单独运行的App，说白了就是在&lt;code&gt;build.gradle&lt;/code&gt;文件中将&lt;code&gt;apply plugin: &#39;com.android.library&#39;&lt;/code&gt;改为&lt;code&gt;apply plugin: &#39;com.android.application&#39;&lt;/code&gt;，网上有很多相关资料，在此就不赘述了）。&lt;/p&gt;
+
+&lt;p&gt;现在来了个开发需求需要改动组件&lt;code&gt;Component1&lt;/code&gt;内部的逻辑，团队中的小A是负责该组件的开发人员，在接到需求后，小A啪啪啪一顿猛如虎的操作完成需求后，对该组件进行单元测试，检查组件输入输出，测试通过后提交代码，审核通过后构建平台构建、打包、发布，整个过程完全没有“惊动”其他组件，Perfect！&lt;/p&gt;
+
+&lt;p&gt;然而现实是残酷的。。&lt;/p&gt;
+
+&lt;p&gt;由于组件间不可能完全不通信，所以现实情况组件之间的依赖关系有可能是这样的：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://richardwrq.github.io/组件化之路/现实情况依赖关系.jpg&#34; alt=&#34;现实情况下的依赖关系&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;对比上图，组件之间显得更加“亲密无间”了，而且这还不是糟糕的情况，当组件越来越多，各种相互依赖，循坏依赖的问题会让你痛不欲生。&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;因为组件之间不可避免的存在需要通信的情况，比如 &lt;code&gt;Component1&lt;/code&gt;需要调用&lt;code&gt;Component2&lt;/code&gt;的方法一般情况下我们都是直接通过类名或对象引用的方式去调用相应的方法。但是这种通信方式正是导致组件之间高度耦合的罪魁祸首，所以必须杜绝这种通信方式。&lt;/p&gt;
+
+&lt;p&gt;那么问题来了，怎么做到既能让组件间通信又高度解耦呢？这就需要用到文章开头提到的&lt;strong&gt;面向接口编程&lt;/strong&gt;思想和&lt;strong&gt;依赖注入&lt;/strong&gt;（或者叫依赖查找）技术。举个🌰：&lt;/p&gt;
+
+&lt;p&gt;组件A中的&lt;code&gt;Foo1&lt;/code&gt;类依赖组件B&lt;code&gt;Foo2&lt;/code&gt;类中的&lt;code&gt;bar&lt;/code&gt;方法，一种比较low的实现方式是：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;//ComponentA
+class Foo1 {
+    private Foo2 mFoo2;
+    public void main() {
+        mFoo2 = new Foo2();
+        mFoo2.bar();
+    }
+}
+
+//ComponentB
+class Foo2 {
+    public void bar() {
+        //nop
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这种实现方式违反了&lt;a href=&#34;https://baike.baidu.com/item/%E4%BE%9D%E8%B5%96%E5%80%92%E7%BD%AE%E5%8E%9F%E5%88%99/6189149&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;控制反转&lt;/a&gt;设计原则，耦合度高，假如这时需求变更了，需要使用组件C的&lt;code&gt;Foo3&lt;/code&gt;类中的&lt;code&gt;bar()&lt;/code&gt;方法去替换原来的实现，那这下乐子就大了。&lt;/p&gt;
+
+&lt;p&gt;而通过面向接口编程以及&lt;strong&gt;依赖注入&lt;/strong&gt;技术我们能很好的遵循控制反转设计原则：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;//Common Component
+interface IBar {
+    void bar()
+}
+
+//ComponentA
+class Foo1 {
+    private IBar mBar;
+    
+    public void main() {
+        if (mBar != null) {
+            mBar.bar();
+        }
+    }
+    
+    public void setBar(IBar bar) {
+        mBar = bar;
+    }
+}
+
+//ComponentB
+class Foo2 implements IBar {
+    
+    @Override
+    public void bar() {
+        //nop
+    }
+}
+
+//ComponentC
+class Foo3 implements IBar {
+    
+    @Override
+    public void bar() {
+        //nop
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这就是经典的实现了控制反转的示例代码，&lt;code&gt;Foo1&lt;/code&gt;类只知道自己需要一个实现了&lt;code&gt;IBar&lt;/code&gt;接口的实例，然后调用接口的&lt;code&gt;bar()&lt;/code&gt;方法，至于是谁去实现的这个接口，不好意思，它压根不关心。&lt;/p&gt;
+
+&lt;p&gt;虽然你&lt;code&gt;Foo1&lt;/code&gt;类是舒服了，把依赖关系交给外部去解决了，但是总要有人去负责这部分的工作吧。这时候依赖注入容器（IOC容器）就登场了，如果对web开发有所了解的同学肯定不会感到陌生，&lt;code&gt;Spring&lt;/code&gt;就是一个IOC容器，这个容器把依赖查找，类实例化（其实就是根据类的路径名称通过反射进行实例化）这些脏活累活揽在身上，这样既实现了控制反转又极大提高了应用的灵活性和可维护性。&lt;/p&gt;
+
+&lt;p&gt;正因为依赖注入能有效地降低代码之间的耦合度，所以基于依赖注入实现的&lt;strong&gt;组件化框架&lt;/strong&gt;（路由框架）也就应运而生了，目前主流的Android组件化框架有&lt;a href=&#34;https://github.com/alibaba/ARouter&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;ARouter&lt;/a&gt;、&lt;a href=&#34;https://github.com/luckybilly/CC&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;CC&lt;/a&gt;、&lt;a href=&#34;https://github.com/luojilab/DDComponentForAndroid&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;DDComponentForAndroid&lt;/a&gt;、&lt;a href=&#34;https://github.com/mzule/ActivityRouter&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;ActivityRouter&lt;/a&gt;等等，我自己也使用&lt;code&gt;Kotlin&lt;/code&gt;基于&lt;code&gt;kapt&lt;/code&gt;技术实现了一个路由框架&lt;a href=&#34;https://github.com/richardwrq/KRouter&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;KRouter&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;虽然相关的框架有很多，但是它们实现原理不外乎两种：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;一种是将分布在各个组件的类按照一定的规则在内部生成映射表，这个映射表的数据结构通常是一个Map，Key是一个字符串，Value是一个类或者是类的路径名称（用于通过反射进行类的实例化）。通俗来说就是类的查找，这种实现方式要求调用方和被调用方都持有接口类，通常这些共同持有的接口类会被定义在一个&lt;code&gt;Common&lt;/code&gt;基础模块中，而且在运行时这些相互通信的组件必须打包到同一个APK中。这种实现方式导致无法真正实现代码隔离（需要通信的两个组件仍然是存在依赖关系的），基于这种原理实现的组件化架构“自约束能力”很弱，因为无法约束开发人员通过直接引用的方式进行通信的行为，虽然一开始设计人员想的很美好，但是开发人员在实现时做出来的产品却不是那样，因为“自约束能力”弱的架构设计是通过“编码规范”、“测试驱动”甚至是“人员熟练度”来保证开发人员实现的代码符合设计人员的设计初衷，而且这种架构也无法保证后续接手维护项目的开发人员能够贯彻原本的设计思想，随着时间推移，项目往越来越糟糕的方向演进（解决这个问题最好的方案就是从编译器层面进行约束，也就是把问题拦截在编码阶段，然而Java9才支持模块化开发，Android目前还处于支持部分Java8的特性的阶段，路还很长）。&lt;/li&gt;
+&lt;li&gt;另一种方案是基于事件总线的方式实现组件之间的通信，不再是面向接口编程，而是面向通信协议编程，可以理解为组件间的调用类似http请求。这些框架会在内部建立跨进程通信的连接（也就是事件总线），这条事件总线负责分发路由请求以及返回执行结果。这种实现方式的好处是真正可以实现代码隔离，组件可以运行在独立的进程中，但是只支持基本类型参数的转发。实现跨进程通信有很多方案，比如Android原生的四大组件、Socket、FileObserver、MemoryFile、基于AIDL的Messager等等，使用Android原生的好处是安全性方面的工作由Android帮我们完成了，而使用Socket则需要自己实现加密Socket。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;第一种方案适合小型的项目，因为这些项目通常都是单进程的，虽然这样设计的架构“自约束能力”弱，但是目前大多数Android项目团队开发人数也不会太多，所以管理难度较小，而第二种实现方案则更适合跨进程组件化的项目（组件一般运行在独立的进程中甚至一个组件就是一个APP）。&lt;/p&gt;
+
+&lt;p&gt;在我看来Android的组件化是存在3个阶段的，第一个是从单工程项目过度到多模块的阶段；第二个是从多模块过度到多组件的阶段；第三个就是多组件独立进程的阶段。而目前大多数应用其实都是在第二个阶段或者介于第二和第三个阶段之间，所以对于这样的项目，选择一个既支持类查找方式，又支持事件总线的组件化框架是最合适的（这也是一开始设计&lt;strong&gt;KRouter&lt;/strong&gt;想要达到的效果，虽然目前暂时不支持跨进程组件。。。）&lt;/p&gt;
+
+&lt;p&gt;在项目实施组件化过程中，其实真正耗费时间、精力的不是编码，而是一开始组件的划分以及组件单元测试的代码的编写。有可能因为一开始对业务的不熟悉，导致后期开发时发现组件划分的不够准确，需要加以调整；或者是对接口抽象的不够好，导致维护时频繁修改接口；还有可能在编写单元测试时觉得枯燥乏味而选择放弃。我们不能因为遇到这些困难就半途而废，或者是质疑自己的架构设计能力，没有哪一个架构设计是放之四海皆准的，有可能一个项目的架构设计放在另一个项目中就显得不那么合适了。所以好的架构设计还需要设计人员“因地制宜”的对一个比较通用的架构骨架进行查漏补缺，最后使其与实际项目更加契合。&lt;/p&gt;
+
+&lt;p&gt;祝大家都能成为一个优秀的架构设计师。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>IntelliJ IDEA/Android Studio插件开发入门指南</title>
