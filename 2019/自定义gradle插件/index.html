@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noodp"/>
+  <meta name="author" content="RichardWu">
+  
+  
+  
+  <link rel="prev" href="https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/" />
+  
+  <link rel="canonical" href="https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>
+       
+       
+           自定义Gradle插件 | RichardWu&#39;s Blog
+       
+  </title>
+  <meta name="title" content="自定义Gradle插件 | RichardWu&#39;s Blog">
+    
+  
+  <link rel="stylesheet" href="/font/iconfont.css">
+  <link rel="stylesheet" href="/css/main.min.css">
+
+
+  
+  
+ 
+
+<script type="application/ld+json">
+ "@context" : "http://schema.org",
+    "@type" : "BlogPosting",
+    "mainEntityOfPage": {
+         "@type": "WebPage",
+         "@id": "https://richardwrq.github.io/"
+    },
+    "articleSection" : "posts",
+    "name" : "自定义Gradle插件",
+    "headline" : "自定义Gradle插件",
+    "description" : "是什么 Gradle是一个开源的自动化构建工具，可以使用groovy或kotlin来编写Gradle构建脚本，具有高度可定制、更快的编译速度以及功能强大等特性。
+Gradle的核心为构建任何东西提供了一个基础架构，但是插件允许构建脚本作者花最少的努力完成任务，允许他们专注于构建什么，而不是如何构建。简单来说可以把Gradle理解为是一个编程框架，我们只要遵循它的设计规则，利用它提供的API可以编写出各种各样的插件；在Gradle中，每一个待编译的工程是一个Project，每一个Project在构建的时候都会包含一系列的Task。一个Android项目的构建大致包含：Kotlin源码编译、Java源码编译、资源编译、JNI编译、Lint检查、混淆、打包、签名等等若干个Task任务。
+Gradle也是一个Java或者说JVM应用，这个应用的任务就是去完成构建期的工作，我们在编写Gradle插件的时候其实和编写一个Android应用是非常类似的，只需要遵循Gradle定义的规则以及了解它的一些生命周期即可（就和我们需要了解四大组件的生命周期一样）。
+下面是一个Gradle项目的结构：
+. ├── CustomPluginSample.iml ├── MyPlugin │ ├── MyPlugin.iml │ ├── build.gradle │ ├── libs │ └── src ├── app │ ├── app.iml │ ├── build │ ├── build.gradle │ ├── libs │ ├── proguard-rules.pro │ └── src ├── build.gradle ├── gradle │ └── wrapper ├── gradle.properties ├── gradlew ├── gradlew.bat ├── local.properties └── settings.gradle  这个项目包含MyPlugin和app以及CustomPluginSample三个Project（看目录下是否有build.gradle文件）
+其中CustomPluginSample是Root Project，与其他Project的区别是多了一个settings.gradle文件，带有这个文件的Project表明它是一个Multi Project，这个文件是告诉Gradle项目和子项目是如何构造的，我们来看下这个文件的内容：
+include ':app', ':MyPlugin'  内容简单易懂，就是调用include函数把app和MyPlugin包含到项目当中，而build.gradle文件中则是配置当前Project的构建脚本。",
+    "inLanguage" : "zh",
+    "author" : "RichardWu",
+    "creator" : "RichardWu",
+    "publisher": "RichardWu",
+    "accountablePerson" : "RichardWu",
+    "copyrightHolder" : "RichardWu",
+    "copyrightYear" : "2019",
+    "datePublished": "2019-01-02 20:36:28 &#43;0800 CST",
+    "dateModified" : "2019-01-02 20:36:28 &#43;0800 CST",
+    "url" : "https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/",
+    "wordCount" : "367",
+    "keywords" : [  "RichardWu&#39;s Blog"]
+}
+</script>
+
+</head>
+
+  
+
+
+  <body class="">
+    <div class="wrapper">
+        <nav class="navbar">
+    <div class="container">
+        <div class="navbar-header header-logo">
+        	<a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a>
+        </div>
+        <div class="menu navbar-right">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+<nav class="navbar-mobile" id="nav-mobile" style="display: none">
+     <div class="container">
+        <div class="navbar-header">
+            <div>  <a href="javascript:void(0);" class="theme-switch"><i class="iconfont icon-xihuan"></i></a>&nbsp;<a href="https://richardwrq.github.io/">RichardWu&#39;s Blog</a></div>
+            <div class="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+     
+          <div class="menu" id="mobile-menu">
+                
+                
+                <a class="menu-item" href="/posts/" title="">Blog</a>
+                
+                <a class="menu-item" href="/categories/" title="">Categories</a>
+                
+                <a class="menu-item" href="/tags/" title="">Tags</a>
+                
+                <a class="menu-item" href="/about/" title="">About</a>
+                
+        </div>
+    </div>
+</nav>
+    	 <main class="main">
+          <div class="container">
+      		
+<article class="post-warp" itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">自定义Gradle插件</h1>
+        <div class="post-meta">
+                Written by <a itemprop="name" href="https://richardwrq.github.io/" rel="author">RichardWu</a> with ♥ 
+                <span class="post-time">
+                on <time datetime=2019-01-02 itemprop="datePublished">January 2, 2019</time>
+                </span>
+                in
+                <i class="iconfont icon-folder"></i>
+                <span class="post-category">
+                        <a href="https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/"> 开发工具 </a>
+                        
+                </span>
+        </div>
+    </header>
+    <div class="post-content">
+        
+
+        
+            
+        
+
+        
+        
+     
+          
+          
+          
+
+          
+          
+          
+
+          
+
+<h2 id="是什么">是什么</h2>
+
+<p><strong>Gradle</strong>是一个开源的自动化构建工具，可以使用<code>groovy</code>或<code>kotlin</code>来编写<strong>Gradle</strong>构建脚本，具有高度可定制、更快的编译速度以及功能强大等特性。<br />
+<strong>Gradle</strong>的核心为构建任何东西提供了一个基础架构，但是插件允许构建脚本作者花最少的努力完成任务，允许他们专注于构建什么，而不是如何构建。简单来说可以把<strong>Gradle</strong>理解为是一个编程框架，我们只要遵循它的设计规则，利用它提供的API可以编写出各种各样的插件；在<strong>Gradle</strong>中，每一个待编译的工程是一个<strong>Project</strong>，每一个<strong>Project</strong>在构建的时候都会包含一系列的<strong>Task</strong>。一个Android项目的构建大致包含：Kotlin源码编译、Java源码编译、资源编译、JNI编译、Lint检查、混淆、打包、签名等等若干个Task任务。<br />
+<strong>Gradle</strong>也是一个Java或者说JVM应用，这个应用的任务就是去完成构建期的工作，我们在编写<strong>Gradle</strong>插件的时候其实和编写一个Android应用是非常类似的，只需要遵循<strong>Gradle</strong>定义的规则以及了解它的一些生命周期即可（就和我们需要了解四大组件的生命周期一样）。<br />
+下面是一个<strong>Gradle</strong>项目的结构：</p>
+
+<pre><code class="language-sh">.
+├── CustomPluginSample.iml
+├── MyPlugin
+│   ├── MyPlugin.iml
+│   ├── build.gradle
+│   ├── libs
+│   └── src
+├── app
+│   ├── app.iml
+│   ├── build
+│   ├── build.gradle
+│   ├── libs
+│   ├── proguard-rules.pro
+│   └── src
+├── build.gradle
+├── gradle
+│   └── wrapper
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+└── settings.gradle
+</code></pre>
+
+<p>这个项目包含<strong>MyPlugin</strong>和<strong>app</strong>以及<strong>CustomPluginSample</strong>三个<strong>Project</strong>（看目录下是否有build.gradle文件）<br />
+其中<strong>CustomPluginSample</strong>是<strong>Root Project</strong>，与其他<strong>Project</strong>的区别是多了一个<code>settings.gradle</code>文件，带有这个文件的<strong>Project</strong>表明它是一个<strong>Multi Project</strong>，这个文件是告诉<strong>Gradle</strong>项目和子项目是如何构造的，我们来看下这个文件的内容：</p>
+
+<pre><code class="language-groovy">include ':app', ':MyPlugin'
+</code></pre>
+
+<p>内容简单易懂，就是调用<code>include</code>函数把<strong>app</strong>和<strong>MyPlugin</strong>包含到项目当中，而<code>build.gradle</code>文件中则是配置当前<strong>Project</strong>的构建脚本。<br />
+很显然，上面提到的两个文件是<strong>Gradle</strong>约定好的规则，在<strong>Gradle</strong>启动的时候会对项目目录进行扫描，找到这些文件，那现在第一个问题来了，这些文件是在什么时候被执行的呢？这就需要我们去了解<strong>Gradle</strong>的生命周期了（是不是和刚学习Android开发的时候很像？）<br />
+<figure><img src="/images/ring.svg" data-sizes="auto" data-src="/自定义Gradle插件/Gradle工作流程.png" alt="Gradle工作流程" class="lazyload"><figcaption class="image-caption">Gradle工作流程</figcaption></figure></p>
+
+<ul>
+<li><strong>Initialization</strong><br />
+Gradle支持单个和多个项目构建。在初始化阶段，Gradle确定哪些项目将参与构建，并为每个项目创建一个项目实例。<code>settings.gradle</code>文件就是在这个时期执行的</li>
+<li><strong>Configuration</strong><br />
+在此阶段将配置项目对象，作为构建的一部分的所有项目的构建脚本都被执行。<code>build.gradle</code>文件被解析<br /></li>
+<li><strong>Execution</strong><br />
+Gradle确定要执行的任务的子集，这些任务是在<strong>Configuration</strong>阶段创建和配置的。子集由传递给gradle命令和当前目录的任务名称参数决定。然后Gradle执行每一个被选择的任务。
+我分别在每个<code>build.gradle</code>以及<code>settings.gradle</code>加了一些log输出的代码：</li>
+</ul>
+
+<pre><code class="language-groovy">task MyPluginTask {
+    System.println(&quot;in project $project.name, build.gradle parsed&quot;)
+}
+
+
+gradle.beforeProject {
+    System.println(&quot;------$project.name: beforeProject------&quot;)
+}
+
+gradle.taskGraph.whenReady {
+    System.println(&quot;------$project.name: whenReady------&quot;)
+}
+
+gradle.buildFinished {
+    System.println(&quot;------$project.name: buildFinished------&quot;)
+}
+</code></pre>
+
+<p>在执行项目后输出日志内容如下:</p>
+
+<pre><code class="language-shell">Executing tasks: [:app:generateDebugSources]
+
+settings.gradle invoke
+------settings.gradle: beforeProject------
+in project CustomPluginSample, build.gradle parsed
+------settings.gradle: beforeProject------
+------CustomPluginSample: beforeProject------
+in project app, build.gradle parsed
+------settings.gradle: whenReady------
+------CustomPluginSample: whenReady------
+------app: whenReady------
+:app:preBuild UP-TO-DATE
+...中间省略
+:app:processDebugResources UP-TO-DATE
+:app:generateDebugSources UP-TO-DATE
+
+BUILD SUCCESSFUL in 0s
+13 actionable tasks: 13 up-to-date
+------settings.gradle: buildFinished------
+------CustomPluginSample: buildFinished------
+------app: buildFinished------
+
+</code></pre>
+
+<p>很显然，<strong>Gradle</strong>在解析完<code>settings.gradle</code>后，每解析一个<code>build.gradle</code>文件都会执行一遍上图的流程，而且调用<code>gradle.beforeProject</code>等方法应该是将参数中的闭包添加到一个类似队列的数据结构，每次解析完一个<code>build.gradle</code>文件后就会从这个数据结构中取出这些闭包从头开始执行一次。</p>
+
+<h2 id="为什么">为什么</h2>
+
+<p>在上面介绍完<strong>Gradle</strong>是什么之后，我想*为什么要写Gradle插件*这个问题的答案也就呼之欲出了，前面说到<strong>Gradle</strong>是一个编程框架，我们利用这个框架提供的API并遵循它制定的规则去实现我们想要的插件，比如构建Android应用的插件，编写自定义插件和编写一个供其他开发人员使用的第三方库的目的是一样的，都是把一些具备基本功能的API进一步封装，为开发人员提供更加方便、可以实现更复杂功能的API。</p>
+
+<h2 id="怎么做">怎么做</h2>
+
+<h5 id="创建一个名为-myplugin-的module-在-myplugin-src-main-resources-meta-inf-gradle-plugins-目录下创建一个名为-org-example-greeting-properties-的文件">创建一个名为<strong>MyPlugin</strong>的Module，在<strong>MyPlugin/src/main/resources/META-INF/gradle-plugins/</strong>目录下创建一个名为<code>org.example.greeting.properties</code>的文件:</h5>
+
+<pre><code>implementation-class=org.example.greeting.GreetingPlugin
+</code></pre>
+
+<p>这个文件是为了让<strong>Gradle</strong>知道哪些类实现了<code>Plugin</code>这个接口，而这个文件除了扩展名<code>.properties</code>以外的名字将作为这个插件的唯一标识即ID。</p>
+
+<h5 id="接下来我们看看greetingplugin的内容">接下来我们看看GreetingPlugin的内容：</h5>
+
+<pre><code class="language-java">public class GreetingPlugin implements Plugin&lt;Project&gt; {
+
+    @Override
+    public void apply(Project project) {
+        project.getPlugins().apply(SecondPlugin.class); //1
+
+        GreetingPluginExtension extension = project.getExtensions().create(&quot;greeting&quot;, GreetingPluginExtension.class);//2
+
+        project.getTasks().create(&quot;hello&quot;, Greeting.class, (task) -&gt; {//3
+            task.setMessage(&quot;Hello&quot;);
+            task.setRecipient(&quot;World&quot;);
+            task.doLast(task1 -&gt; {
+                System.out.println(&quot;task message: &quot; + task.getMessage() + &quot;, recipient: &quot; + task.getRecipient());
+                System.out.println(&quot;extension title: &quot; + extension.title + &quot;, message: &quot; + extension.message);
+            });
+        });
+
+    }
+}
+</code></pre>
+
+<ul>
+<li>标注1处apply了另一个插件<strong>SecondPlugin</strong>，这个类的apply方法将会被调用；<br /></li>
+
+<li><p>标注2处创建了一个名称为<code>greeting</code>的<strong>extension</strong>，对应的类是<strong>GreetingPluginExtension</strong>：</p>
+
+<pre><code class="language-java">public class GreetingPluginExtension {
+    String title = &quot;default&quot;;
+    String message = &quot;default&quot;;
+}
+</code></pre>
+
+<p>创建的这个<strong>extension</strong>是什么东西呢？看一下<strong>build.gradle</strong>文件的这句代码可能你就了解了：</p>
+
+<pre><code class="language-java">greeting {
+    title = 'modify'
+    message = 'modify'
+}
+</code></pre>
+
+<p>我们在使用很多第三方<strong>Gradle</strong>插件的时候经常会碰到这样的代码，用户可以在这个闭包里面对其属性进行一些配置，这些配置就能够被插件获取到（有一个恶心的地方就是如果没有文档的话用户压根就不知道怎么去配置）。</p></li>
+
+<li><p>标注3处则创建了一个名为<code>hello</code>的<strong>Task</strong>，对应的类为<strong>Greeting</strong>：</p>
+
+<pre><code class="language-java">public class Greeting extends DefaultTask {
+    
+    private String message = &quot;default&quot;;
+    private String recipient = &quot;default&quot;;
+    
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    
+    public String getRecipient() { return recipient; }
+    public void setRecipient(String recipient) { this.recipient = recipient; }
+    
+    @TaskAction
+    void sayGreeting() {
+        System.out.printf(&quot;%s, %s!\n&quot;, getMessage(), getRecipient());
+    }
+    
+    @TaskAction
+    void secondAction() {
+        System.out.println(&quot;this is second action&quot;);
+    }
+}
+</code></pre></li>
+</ul>
+
+<p><strong>Task</strong>在<strong>Gradle</strong>是一个很重要的类，上文提到插件就是负责定义各种<strong>Task</strong>然后按照一定顺序执行最终完成整个构建流程，<strong>Gradle</strong>提供了丰富的API来让我们对这些<strong>Task</strong>添加额外的行为，以及建立它们之间的依赖关系。
+​<br />
+####<strong>Task</strong>的几种执行结果<br />
+当<strong>Gradle</strong>执行一个任务的时候，它可以在控制台中用不同的结果标记任务。这些标签是基于任务是否有操作要执行，是否应该执行这些操作，是否执行了这些操作，以及这些操作是否做了任何更改。
+​</p>
+
+<h5 id="no-label-or-executed">(no label) or EXECUTED</h5>
+
+<p>任务执行它所有的Actions<br />
+- 任务有actions且Gradle确定它们应该作为构建的一部分来执行<br />
+- 任务没有actions和依赖任务，或者所有依赖的任务已经被执行完毕</p>
+
+<h5 id="up-to-date">UP-TO-DATE</h5>
+
+<p>任务的输出没有改变<br />
+- 任务有输入和输出，如果它们没有改变<br />
+- 任务没有actions，但是任务已经告知Gradle它没有改变它的输出
+- 任务没有任何actions和依赖任务，但它所有的依赖任务都是up-to-date, skipped或者from cache结果
+- 任务没有actions和依赖任务</p>
+
+<h5 id="from-cache">FROM-CACHE</h5>
+
+<p>任务的输出可以从上一次执行缓存中找到（已开启构建缓存）</p>
+
+<h5 id="skipped">SKIPPED</h5>
+
+<p>任务不执行它的actions<br />
+- 任务被显示的排除在命令行之外
+- 任务调用了<code>onlyif</code>方法，只有在这个方法返回true的时候任务的actions才会被执行</p>
+
+<h5 id="no-source">NO-SOURCE</h5>
+
+<p>任务不需要执行它的actions，任务有输入和输出，但是没有<code>sources</code></p>
+
+<p>更详细的内容参考<a href="https://docs.gradle.org/4.10-rc-2/userguide/more_about_tasks.html" rel="nofollow noreferrer" target="_blank">https://docs.gradle.org/4.10-rc-2/userguide/more_about_tasks.html</a></p>
+
+<p>现在我们已经创建了一个简单的<strong>Plugin</strong>，要怎么去应用它呢？官方文档的教程里面是让我们上传到仓库中，然后通过唯一ID去引入我们的自定义插件，但是这样对于我们只是写一个简单的demo来说太麻烦了，所以我找到一个简单的方法可以让我们比较方便的在本地去调试我们的自定义插件。<br />
+首先将项目编译完成，可以在<strong>GreetingPlugin/build/libs</strong>目录下找到编译出来的jar包，将其拷贝到任意目录（我这里将它拷贝到<strong>GreetingPlugin/libs</strong>目录），然后在项目跟目录的<code>build.gradle</code>加入如下代码：</p>
+
+<pre><code class="language-groovy">buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath fileTree(include: ['*.jar'], dir: 'GreetingPlugin/libs/')
+        classpath files('GreetingPlugin/libs/GreetingPlugin.jar')
+    }
+}
+</code></pre>
+
+<p>然后在需要引入插件的<code>build.gradle</code>文件加入下面的代码即可</p>
+
+<pre><code class="language-groovy">apply plugin: GreetingPlugin
+</code></pre>
+
+    </div>
+
+    <div class="post-copyright">
+             
+            <p class="copyright-item">
+                <span>Author:</span>
+                <span>RichardWu </span>
+                </p>
+            
+           
+             
+            <p class="copyright-item">
+                    <span>Link:</span>
+                    <a href=https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/>https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/</span>
+            </p>
+            
+             
+            <p class="copyright-item lincese">
+                本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">知识共享署名-非商业性使用 4.0 国际许可协议</a>进行许可
+            </p>
+            
+    </div>
+
+  
+    <div class="post-tags">
+        
+        <section>
+                <a href="javascript:window.history.back();">back</a></span> · 
+                <span><a href="https://richardwrq.github.io/">home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav">
+        
+        <a href="https://richardwrq.github.io/2018/android%E7%BB%84%E4%BB%B6%E5%8C%96%E4%B9%8B%E8%B7%AF/" class="prev" rel="prev" title="Android组件化之路"><i class="iconfont icon-left"></i>&nbsp;Android组件化之路</a>
+         
+        
+    </div>
+
+    <div class="post-comment">
+          
+                 
+          
+    </div>
+</article>
+          </div>
+		   </main>
+      <footer class="footer">
+    <div class="copyright">
+        &copy;
+        
+        <span itemprop="copyrightYear">2011 - 2019</span>
+        
+        <span class="with-love">
+    	 <i class="iconfont icon-love"></i> 
+         </span>
+         
+            <span class="author" itemprop="copyrightHolder"><a href="https://richardwrq.github.io/">RichardWu</a> | </span> 
+         
+
+         
+		  <span>Powered by <a href="https://gohugo.io/" target="_blank" rel="external nofollow">Hugo</a> & <a href="https://github.com/liuzc/leaveit" target="_blank" rel="external nofollow">LeaveIt</a></span> 
+    </div>
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+
+    
+     <link href="//lib.baomitu.com/lightgallery/1.6.11/css/lightgallery.min.css" rel="stylesheet">  
+      
+     <script src="/js/vendor_gallery.min.js" async="" ></script>
+    
+  
+
+
+
+     </div>
+  </body>
+</html>

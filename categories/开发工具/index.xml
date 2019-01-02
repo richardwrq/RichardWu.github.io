@@ -6,10 +6,25 @@
     <description>Recent content in 开发工具 on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
-    <lastBuildDate>Wed, 21 Nov 2018 15:13:22 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 02 Jan 2019 20:36:28 +0800</lastBuildDate>
     
 	<atom:link href="https://richardwrq.github.io/categories/%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>自定义Gradle插件</title>
+      <link>https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/</link>
+      <pubDate>Wed, 02 Jan 2019 20:36:28 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/</guid>
+      <description>是什么 Gradle是一个开源的自动化构建工具，可以使用groovy或kotlin来编写Gradle构建脚本，具有高度可定制、更快的编译速度以及功能强大等特性。
+Gradle的核心为构建任何东西提供了一个基础架构，但是插件允许构建脚本作者花最少的努力完成任务，允许他们专注于构建什么，而不是如何构建。简单来说可以把Gradle理解为是一个编程框架，我们只要遵循它的设计规则，利用它提供的API可以编写出各种各样的插件；在Gradle中，每一个待编译的工程是一个Project，每一个Project在构建的时候都会包含一系列的Task。一个Android项目的构建大致包含：Kotlin源码编译、Java源码编译、资源编译、JNI编译、Lint检查、混淆、打包、签名等等若干个Task任务。
+Gradle也是一个Java或者说JVM应用，这个应用的任务就是去完成构建期的工作，我们在编写Gradle插件的时候其实和编写一个Android应用是非常类似的，只需要遵循Gradle定义的规则以及了解它的一些生命周期即可（就和我们需要了解四大组件的生命周期一样）。
+下面是一个Gradle项目的结构：
+. ├── CustomPluginSample.iml ├── MyPlugin │ ├── MyPlugin.iml │ ├── build.gradle │ ├── libs │ └── src ├── app │ ├── app.iml │ ├── build │ ├── build.gradle │ ├── libs │ ├── proguard-rules.pro │ └── src ├── build.gradle ├── gradle │ └── wrapper ├── gradle.properties ├── gradlew ├── gradlew.bat ├── local.properties └── settings.gradle  这个项目包含MyPlugin和app以及CustomPluginSample三个Project（看目录下是否有build.gradle文件）
+其中CustomPluginSample是Root Project，与其他Project的区别是多了一个settings.gradle文件，带有这个文件的Project表明它是一个Multi Project，这个文件是告诉Gradle项目和子项目是如何构造的，我们来看下这个文件的内容：
+include &#39;:app&#39;, &#39;:MyPlugin&#39;  内容简单易懂，就是调用include函数把app和MyPlugin包含到项目当中，而build.gradle文件中则是配置当前Project的构建脚本。</description>
+    </item>
     
     <item>
       <title>IntelliJ IDEA/Android Studio插件开发入门指南</title>

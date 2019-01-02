@@ -6,8 +6,254 @@
     <description>Recent content in RichardWu&#39;s Blog on RichardWu&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh</language>
-    <lastBuildDate>Fri, 21 Dec 2018 14:20:24 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 02 Jan 2019 20:36:28 +0800</lastBuildDate>
     <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>自定义Gradle插件</title>
+      <link>https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/</link>
+      <pubDate>Wed, 02 Jan 2019 20:36:28 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/2019/%E8%87%AA%E5%AE%9A%E4%B9%89gradle%E6%8F%92%E4%BB%B6/</guid>
+      <description>
+
+&lt;h2 id=&#34;是什么&#34;&gt;是什么&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Gradle&lt;/strong&gt;是一个开源的自动化构建工具，可以使用&lt;code&gt;groovy&lt;/code&gt;或&lt;code&gt;kotlin&lt;/code&gt;来编写&lt;strong&gt;Gradle&lt;/strong&gt;构建脚本，具有高度可定制、更快的编译速度以及功能强大等特性。&lt;br /&gt;
+&lt;strong&gt;Gradle&lt;/strong&gt;的核心为构建任何东西提供了一个基础架构，但是插件允许构建脚本作者花最少的努力完成任务，允许他们专注于构建什么，而不是如何构建。简单来说可以把&lt;strong&gt;Gradle&lt;/strong&gt;理解为是一个编程框架，我们只要遵循它的设计规则，利用它提供的API可以编写出各种各样的插件；在&lt;strong&gt;Gradle&lt;/strong&gt;中，每一个待编译的工程是一个&lt;strong&gt;Project&lt;/strong&gt;，每一个&lt;strong&gt;Project&lt;/strong&gt;在构建的时候都会包含一系列的&lt;strong&gt;Task&lt;/strong&gt;。一个Android项目的构建大致包含：Kotlin源码编译、Java源码编译、资源编译、JNI编译、Lint检查、混淆、打包、签名等等若干个Task任务。&lt;br /&gt;
+&lt;strong&gt;Gradle&lt;/strong&gt;也是一个Java或者说JVM应用，这个应用的任务就是去完成构建期的工作，我们在编写&lt;strong&gt;Gradle&lt;/strong&gt;插件的时候其实和编写一个Android应用是非常类似的，只需要遵循&lt;strong&gt;Gradle&lt;/strong&gt;定义的规则以及了解它的一些生命周期即可（就和我们需要了解四大组件的生命周期一样）。&lt;br /&gt;
+下面是一个&lt;strong&gt;Gradle&lt;/strong&gt;项目的结构：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;.
+├── CustomPluginSample.iml
+├── MyPlugin
+│   ├── MyPlugin.iml
+│   ├── build.gradle
+│   ├── libs
+│   └── src
+├── app
+│   ├── app.iml
+│   ├── build
+│   ├── build.gradle
+│   ├── libs
+│   ├── proguard-rules.pro
+│   └── src
+├── build.gradle
+├── gradle
+│   └── wrapper
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── local.properties
+└── settings.gradle
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个项目包含&lt;strong&gt;MyPlugin&lt;/strong&gt;和&lt;strong&gt;app&lt;/strong&gt;以及&lt;strong&gt;CustomPluginSample&lt;/strong&gt;三个&lt;strong&gt;Project&lt;/strong&gt;（看目录下是否有build.gradle文件）&lt;br /&gt;
+其中&lt;strong&gt;CustomPluginSample&lt;/strong&gt;是&lt;strong&gt;Root Project&lt;/strong&gt;，与其他&lt;strong&gt;Project&lt;/strong&gt;的区别是多了一个&lt;code&gt;settings.gradle&lt;/code&gt;文件，带有这个文件的&lt;strong&gt;Project&lt;/strong&gt;表明它是一个&lt;strong&gt;Multi Project&lt;/strong&gt;，这个文件是告诉&lt;strong&gt;Gradle&lt;/strong&gt;项目和子项目是如何构造的，我们来看下这个文件的内容：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;include &#39;:app&#39;, &#39;:MyPlugin&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;内容简单易懂，就是调用&lt;code&gt;include&lt;/code&gt;函数把&lt;strong&gt;app&lt;/strong&gt;和&lt;strong&gt;MyPlugin&lt;/strong&gt;包含到项目当中，而&lt;code&gt;build.gradle&lt;/code&gt;文件中则是配置当前&lt;strong&gt;Project&lt;/strong&gt;的构建脚本。&lt;br /&gt;
+很显然，上面提到的两个文件是&lt;strong&gt;Gradle&lt;/strong&gt;约定好的规则，在&lt;strong&gt;Gradle&lt;/strong&gt;启动的时候会对项目目录进行扫描，找到这些文件，那现在第一个问题来了，这些文件是在什么时候被执行的呢？这就需要我们去了解&lt;strong&gt;Gradle&lt;/strong&gt;的生命周期了（是不是和刚学习Android开发的时候很像？）&lt;br /&gt;
+&lt;img src=&#34;https://richardwrq.github.io/自定义Gradle插件/Gradle工作流程.png&#34; alt=&#34;Gradle工作流程&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Initialization&lt;/strong&gt;&lt;br /&gt;
+Gradle支持单个和多个项目构建。在初始化阶段，Gradle确定哪些项目将参与构建，并为每个项目创建一个项目实例。&lt;code&gt;settings.gradle&lt;/code&gt;文件就是在这个时期执行的&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Configuration&lt;/strong&gt;&lt;br /&gt;
+在此阶段将配置项目对象，作为构建的一部分的所有项目的构建脚本都被执行。&lt;code&gt;build.gradle&lt;/code&gt;文件被解析&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Execution&lt;/strong&gt;&lt;br /&gt;
+Gradle确定要执行的任务的子集，这些任务是在&lt;strong&gt;Configuration&lt;/strong&gt;阶段创建和配置的。子集由传递给gradle命令和当前目录的任务名称参数决定。然后Gradle执行每一个被选择的任务。
+我分别在每个&lt;code&gt;build.gradle&lt;/code&gt;以及&lt;code&gt;settings.gradle&lt;/code&gt;加了一些log输出的代码：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;task MyPluginTask {
+    System.println(&amp;quot;in project $project.name, build.gradle parsed&amp;quot;)
+}
+
+
+gradle.beforeProject {
+    System.println(&amp;quot;------$project.name: beforeProject------&amp;quot;)
+}
+
+gradle.taskGraph.whenReady {
+    System.println(&amp;quot;------$project.name: whenReady------&amp;quot;)
+}
+
+gradle.buildFinished {
+    System.println(&amp;quot;------$project.name: buildFinished------&amp;quot;)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在执行项目后输出日志内容如下:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;Executing tasks: [:app:generateDebugSources]
+
+settings.gradle invoke
+------settings.gradle: beforeProject------
+in project CustomPluginSample, build.gradle parsed
+------settings.gradle: beforeProject------
+------CustomPluginSample: beforeProject------
+in project app, build.gradle parsed
+------settings.gradle: whenReady------
+------CustomPluginSample: whenReady------
+------app: whenReady------
+:app:preBuild UP-TO-DATE
+...中间省略
+:app:processDebugResources UP-TO-DATE
+:app:generateDebugSources UP-TO-DATE
+
+BUILD SUCCESSFUL in 0s
+13 actionable tasks: 13 up-to-date
+------settings.gradle: buildFinished------
+------CustomPluginSample: buildFinished------
+------app: buildFinished------
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;很显然，&lt;strong&gt;Gradle&lt;/strong&gt;在解析完&lt;code&gt;settings.gradle&lt;/code&gt;后，每解析一个&lt;code&gt;build.gradle&lt;/code&gt;文件都会执行一遍上图的流程，而且调用&lt;code&gt;gradle.beforeProject&lt;/code&gt;等方法应该是将参数中的闭包添加到一个类似队列的数据结构，每次解析完一个&lt;code&gt;build.gradle&lt;/code&gt;文件后就会从这个数据结构中取出这些闭包从头开始执行一次。&lt;/p&gt;
+
+&lt;h2 id=&#34;为什么&#34;&gt;为什么&lt;/h2&gt;
+
+&lt;p&gt;在上面介绍完&lt;strong&gt;Gradle&lt;/strong&gt;是什么之后，我想*为什么要写Gradle插件*这个问题的答案也就呼之欲出了，前面说到&lt;strong&gt;Gradle&lt;/strong&gt;是一个编程框架，我们利用这个框架提供的API并遵循它制定的规则去实现我们想要的插件，比如构建Android应用的插件，编写自定义插件和编写一个供其他开发人员使用的第三方库的目的是一样的，都是把一些具备基本功能的API进一步封装，为开发人员提供更加方便、可以实现更复杂功能的API。&lt;/p&gt;
+
+&lt;h2 id=&#34;怎么做&#34;&gt;怎么做&lt;/h2&gt;
+
+&lt;h5 id=&#34;创建一个名为-myplugin-的module-在-myplugin-src-main-resources-meta-inf-gradle-plugins-目录下创建一个名为-org-example-greeting-properties-的文件&#34;&gt;创建一个名为&lt;strong&gt;MyPlugin&lt;/strong&gt;的Module，在&lt;strong&gt;MyPlugin/src/main/resources/META-INF/gradle-plugins/&lt;/strong&gt;目录下创建一个名为&lt;code&gt;org.example.greeting.properties&lt;/code&gt;的文件:&lt;/h5&gt;
+
+&lt;pre&gt;&lt;code&gt;implementation-class=org.example.greeting.GreetingPlugin
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个文件是为了让&lt;strong&gt;Gradle&lt;/strong&gt;知道哪些类实现了&lt;code&gt;Plugin&lt;/code&gt;这个接口，而这个文件除了扩展名&lt;code&gt;.properties&lt;/code&gt;以外的名字将作为这个插件的唯一标识即ID。&lt;/p&gt;
+
+&lt;h5 id=&#34;接下来我们看看greetingplugin的内容&#34;&gt;接下来我们看看GreetingPlugin的内容：&lt;/h5&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class GreetingPlugin implements Plugin&amp;lt;Project&amp;gt; {
+
+    @Override
+    public void apply(Project project) {
+        project.getPlugins().apply(SecondPlugin.class); //1
+
+        GreetingPluginExtension extension = project.getExtensions().create(&amp;quot;greeting&amp;quot;, GreetingPluginExtension.class);//2
+
+        project.getTasks().create(&amp;quot;hello&amp;quot;, Greeting.class, (task) -&amp;gt; {//3
+            task.setMessage(&amp;quot;Hello&amp;quot;);
+            task.setRecipient(&amp;quot;World&amp;quot;);
+            task.doLast(task1 -&amp;gt; {
+                System.out.println(&amp;quot;task message: &amp;quot; + task.getMessage() + &amp;quot;, recipient: &amp;quot; + task.getRecipient());
+                System.out.println(&amp;quot;extension title: &amp;quot; + extension.title + &amp;quot;, message: &amp;quot; + extension.message);
+            });
+        });
+
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;标注1处apply了另一个插件&lt;strong&gt;SecondPlugin&lt;/strong&gt;，这个类的apply方法将会被调用；&lt;br /&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;标注2处创建了一个名称为&lt;code&gt;greeting&lt;/code&gt;的&lt;strong&gt;extension&lt;/strong&gt;，对应的类是&lt;strong&gt;GreetingPluginExtension&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class GreetingPluginExtension {
+    String title = &amp;quot;default&amp;quot;;
+    String message = &amp;quot;default&amp;quot;;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;创建的这个&lt;strong&gt;extension&lt;/strong&gt;是什么东西呢？看一下&lt;strong&gt;build.gradle&lt;/strong&gt;文件的这句代码可能你就了解了：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;greeting {
+    title = &#39;modify&#39;
+    message = &#39;modify&#39;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们在使用很多第三方&lt;strong&gt;Gradle&lt;/strong&gt;插件的时候经常会碰到这样的代码，用户可以在这个闭包里面对其属性进行一些配置，这些配置就能够被插件获取到（有一个恶心的地方就是如果没有文档的话用户压根就不知道怎么去配置）。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;标注3处则创建了一个名为&lt;code&gt;hello&lt;/code&gt;的&lt;strong&gt;Task&lt;/strong&gt;，对应的类为&lt;strong&gt;Greeting&lt;/strong&gt;：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class Greeting extends DefaultTask {
+    
+    private String message = &amp;quot;default&amp;quot;;
+    private String recipient = &amp;quot;default&amp;quot;;
+    
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    
+    public String getRecipient() { return recipient; }
+    public void setRecipient(String recipient) { this.recipient = recipient; }
+    
+    @TaskAction
+    void sayGreeting() {
+        System.out.printf(&amp;quot;%s, %s!\n&amp;quot;, getMessage(), getRecipient());
+    }
+    
+    @TaskAction
+    void secondAction() {
+        System.out.println(&amp;quot;this is second action&amp;quot;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Task&lt;/strong&gt;在&lt;strong&gt;Gradle&lt;/strong&gt;是一个很重要的类，上文提到插件就是负责定义各种&lt;strong&gt;Task&lt;/strong&gt;然后按照一定顺序执行最终完成整个构建流程，&lt;strong&gt;Gradle&lt;/strong&gt;提供了丰富的API来让我们对这些&lt;strong&gt;Task&lt;/strong&gt;添加额外的行为，以及建立它们之间的依赖关系。
+​&lt;br /&gt;
+####&lt;strong&gt;Task&lt;/strong&gt;的几种执行结果&lt;br /&gt;
+当&lt;strong&gt;Gradle&lt;/strong&gt;执行一个任务的时候，它可以在控制台中用不同的结果标记任务。这些标签是基于任务是否有操作要执行，是否应该执行这些操作，是否执行了这些操作，以及这些操作是否做了任何更改。
+​&lt;/p&gt;
+
+&lt;h5 id=&#34;no-label-or-executed&#34;&gt;(no label) or EXECUTED&lt;/h5&gt;
+
+&lt;p&gt;任务执行它所有的Actions&lt;br /&gt;
+- 任务有actions且Gradle确定它们应该作为构建的一部分来执行&lt;br /&gt;
+- 任务没有actions和依赖任务，或者所有依赖的任务已经被执行完毕&lt;/p&gt;
+
+&lt;h5 id=&#34;up-to-date&#34;&gt;UP-TO-DATE&lt;/h5&gt;
+
+&lt;p&gt;任务的输出没有改变&lt;br /&gt;
+- 任务有输入和输出，如果它们没有改变&lt;br /&gt;
+- 任务没有actions，但是任务已经告知Gradle它没有改变它的输出
+- 任务没有任何actions和依赖任务，但它所有的依赖任务都是up-to-date, skipped或者from cache结果
+- 任务没有actions和依赖任务&lt;/p&gt;
+
+&lt;h5 id=&#34;from-cache&#34;&gt;FROM-CACHE&lt;/h5&gt;
+
+&lt;p&gt;任务的输出可以从上一次执行缓存中找到（已开启构建缓存）&lt;/p&gt;
+
+&lt;h5 id=&#34;skipped&#34;&gt;SKIPPED&lt;/h5&gt;
+
+&lt;p&gt;任务不执行它的actions&lt;br /&gt;
+- 任务被显示的排除在命令行之外
+- 任务调用了&lt;code&gt;onlyif&lt;/code&gt;方法，只有在这个方法返回true的时候任务的actions才会被执行&lt;/p&gt;
+
+&lt;h5 id=&#34;no-source&#34;&gt;NO-SOURCE&lt;/h5&gt;
+
+&lt;p&gt;任务不需要执行它的actions，任务有输入和输出，但是没有&lt;code&gt;sources&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;更详细的内容参考&lt;a href=&#34;https://docs.gradle.org/4.10-rc-2/userguide/more_about_tasks.html&#34; rel=&#34;nofollow noreferrer&#34; target=&#34;_blank&#34;&gt;https://docs.gradle.org/4.10-rc-2/userguide/more_about_tasks.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;现在我们已经创建了一个简单的&lt;strong&gt;Plugin&lt;/strong&gt;，要怎么去应用它呢？官方文档的教程里面是让我们上传到仓库中，然后通过唯一ID去引入我们的自定义插件，但是这样对于我们只是写一个简单的demo来说太麻烦了，所以我找到一个简单的方法可以让我们比较方便的在本地去调试我们的自定义插件。&lt;br /&gt;
+首先将项目编译完成，可以在&lt;strong&gt;GreetingPlugin/build/libs&lt;/strong&gt;目录下找到编译出来的jar包，将其拷贝到任意目录（我这里将它拷贝到&lt;strong&gt;GreetingPlugin/libs&lt;/strong&gt;目录），然后在项目跟目录的&lt;code&gt;build.gradle&lt;/code&gt;加入如下代码：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath fileTree(include: [&#39;*.jar&#39;], dir: &#39;GreetingPlugin/libs/&#39;)
+        classpath files(&#39;GreetingPlugin/libs/GreetingPlugin.jar&#39;)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后在需要引入插件的&lt;code&gt;build.gradle&lt;/code&gt;文件加入下面的代码即可&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;apply plugin: GreetingPlugin
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>Android组件化之路</title>
