@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cards on RichardWu&#39;s Blog</title>
+    <link>https://richardwrq.github.io/cards/</link>
+    <description>Recent content in Cards on RichardWu&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 27 Apr 2018 10:54:59 +0800</lastBuildDate>
+    
+	<atom:link href="https://richardwrq.github.io/cards/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>First</title>
+      <link>https://richardwrq.github.io/cards/first/</link>
+      <pubDate>Fri, 27 Apr 2018 10:54:59 +0800</pubDate>
+      
+      <guid>https://richardwrq.github.io/cards/first/</guid>
+      <description>Title aaaasd bbb bcccasd</description>
+    </item>
+    
+  </channel>
+</rss>
